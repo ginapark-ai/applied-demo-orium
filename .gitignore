@@ -52,14 +52,18 @@ mcp.json
 .emulator_console_auth_token
 .storybook/
 
+# Generated Outputs (rebuilt from source)
+_TransformedTokens/kotlin/*.kt
+_TransformedTokens/xml/*.xml
+
 # ============================================================================
 # KEEP THESE (Project Files)
 # ============================================================================
-# !_DOCS/
-# !Current/
-# !Updated*/
-# !Archived/
-# !.gitignore
-# !*.json (Keep token JSON files)
-# !*.md (Keep documentation)
+!_Docs/
+!Tokens/Current/
+!Tokens/New/
+!_Scripts/
+!.gitignore
+!README.md
+!requirements.txt
 

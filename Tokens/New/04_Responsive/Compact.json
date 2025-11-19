@@ -1,5 +1,5 @@
 {
-  "_comment": "Compact responsive mode - overrides base spacing for dense layouts (sedans, coupes)",
+  "_comment": "Compact layout mode - overrides spacing & border radius for dense layouts (sedans, coupes)",
   "spacing": {
     "spacing-2": {
       "value": 2,

@@ -1,5 +1,5 @@
 {
-  "_comment": "Spacious responsive mode - overrides base spacing for generous layouts (SUVs, trucks)",
+  "_comment": "Spacious layout mode - overrides spacing & border radius for generous layouts (SUVs, trucks)",
   "spacing": {
     "spacing-2": {
       "value": 2,

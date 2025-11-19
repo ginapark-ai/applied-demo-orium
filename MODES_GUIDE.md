@@ -1,200 +1,275 @@
 # 🎨 Figma Modes Guide - VehicleOS Design System
 
+Using Tokens Studio **Theme Switching** with Figma Variables
+
+> Based on [Tokens Studio Theme Switching Guide](https://docs.tokens.studio/manage-themes/simple-switch-guide)
+
 ## Overview
 
-The design token system now supports **Figma Modes** for easy management of brands, themes, and spacing variants. Instead of selecting from 12 separate themes, designers can toggle 3 independent mode groups.
-
-## Available Modes
-
-### 1. Brand Mode
-Select which brand to use:
-- **Default** — Apply Default Brand colors & typography
-- **Brand2** — Apply Brand2 colors & typography
-
-### 2. Theme Mode
-Select light or dark color theme:
-- **Light** — Light mode colors
-- **Dark** — Dark mode colors
-
-### 3. Spacing Mode
-Select density/spacing:
-- **Default** — Base spacing (spacing-8 = 8px)
-- **Compact** — Dense spacing (spacing-8 = 7px)
-- **Spacious** — Generous spacing (spacing-8 = 9px)
+Instead of managing 12 separate themes or a complex master theme, we use **Theme Groups** that export as independent **Figma Variable Collections**. Each collection has its own modes that designers toggle independently.
 
 ## How It Works
 
-### In Figma (Plugin Interface)
+### 3 Independent Variable Collections
 
-1. Open **Figma Tokens** plugin
-2. Select **00_master_modes** theme from dropdown
-3. You'll see 3 mode groups at the top:
-   - **Brand:** [Default] [Brand2]
-   - **Theme:** [Light] [Dark]
-   - **Spacing:** [Default] [Compact] [Spacious]
-4. Click to toggle each mode
-5. All tokens update automatically for selected combination
-
-### Mode Combinations (12 Total)
+When synced to Figma, you get **3 separate Variable Collections** with independent modes:
 
 ```
-Brand          × Theme        × Spacing      = Total
-(2 options)    (2 options)    (3 options)   = 12 combinations
+┌─────────────────────────────────────────────────────────────┐
+│ VARIABLE COLLECTION: Brand                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Modes: [Default] [Brand2]                                   │
+│ Purpose: Switch brand colors & typography                   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIABLE COLLECTION: Theme                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Modes: [Light] [Dark]                                       │
+│ Purpose: Switch color theme                                 │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIABLE COLLECTION: Spacing                                │
+├─────────────────────────────────────────────────────────────┤
+│ Modes: [Default] [Compact] [Spacious]                       │
+│ Purpose: Switch layout density                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Examples:**
-- Default Brand + Light + Default Spacing
-- Default Brand + Dark + Compact Spacing
-- Brand2 + Dark + Spacious Spacing
-- Brand2 + Light + Compact Spacing
-- etc. (12 total)
+### How Token Resolution Works
 
-## Token Resolution
-
-When you select modes, tokens resolve as follows:
+When you select modes, tokens resolve using **"last set wins"** logic:
 
 ```
-spacing-8 token:
-1. Base: 8px (from 02_Layout.json)
-2. Mode: [Brand selected] → color/typography
-3. Mode: [Theme selected] → color overrides
-4. Mode: [Spacing selected] → spacing overrides
-   - Default: Keep 8px
-   - Compact: Override to 7px
-   - Spacious: Override to 9px
+Example: spacing-8 token
+
+1. _Base/Value loads          → spacing-8 = 8px
+2. Brand mode loads           → (no override)
+3. Theme mode loads           → (no override)
+4. Spacing/Compact loads      → spacing-8 = 7px ✓ (WINS)
+
+Result: spacing-8 = 7px
 ```
 
-**Result:** spacing-8 resolves to either 7px, 8px, or 9px based on Spacing mode.
+All 3 collections are **independent** - they load together but don't conflict.
 
-## Usage Examples
+## Usage in Figma
 
-### Example 1: Compact Dark Mode for Brand2
+### Step 1: Sync Tokens to Figma
+
+1. Open Figma Tokens Studio plugin
+2. Sync your token repository (GitHub, GitLab, etc.)
+3. Plugin creates 3 Variable Collections:
+   - ✅ Brand (modes: Default, Brand2)
+   - ✅ Theme (modes: Light, Dark)
+   - ✅ Spacing (modes: Default, Compact, Spacious)
+
+### Step 2: Use Modes
+
+In your Figma file:
+
+1. **Select a component** or create a design
+2. **Assign variables** to colors, spacing, etc.
+3. **Toggle modes independently**:
+   - Brand Collection → Click to switch brand
+   - Theme Collection → Click to switch colors
+   - Spacing Collection → Click to switch density
+
+Each mode group works **completely independently** - no combinations to manage!
+
+### Example Usage
+
+**Scenario: Design a card for Brand2, Dark mode, Compact spacing**
+
 ```
-Brand:   Brand2 ✓
-Theme:   Dark ✓
-Spacing: Compact ✓
+Step 1: Assign brand-color-primary to card background
+Step 2: Assign spacing-8 to card padding
+Step 3: Toggle modes:
+  • Brand mode     → Brand2 ✓
+  • Theme mode     → Dark ✓
+  • Spacing mode   → Compact ✓
 
-Resolution:
-→ Button uses Brand2 colors
-→ Dark theme applied
-→ Spacing-8 = 7px (dense layout)
+Result:
+  • Card background = Brand2 dark color
+  • Card padding = 7px (compact spacing-8)
 ```
 
-### Example 2: Default Light Mode
-```
-Brand:   Default ✓
-Theme:   Light ✓
-Spacing: Default ✓
+**Switch to Light mode?** Just toggle Theme collection mode to "Light" - everything updates!
 
-Resolution:
-→ Button uses Default Brand colors
-→ Light theme applied
-→ Spacing-8 = 8px (standard layout)
-```
+## Theme Group Reference
 
-### Example 3: Spacious Light Mode for Brand2
-```
-Brand:   Brand2 ✓
-Theme:   Light ✓
-Spacing: Spacious ✓
+### Brand Theme Group
+| Theme | Colors | Typography | Spacing |
+|-------|--------|------------|---------|
+| Default | Default Brand colors | Default typography | Base layout |
+| Brand2 | Brand2 colors | Brand2 typography | Base layout |
 
-Resolution:
-→ Button uses Brand2 colors
-→ Light theme applied
-→ Spacing-8 = 9px (generous layout)
-```
+**Files enabled:** `01_Brand/Default` or `01_Brand/Brand2`
 
-## Scaling: Adding a New Brand
+### Theme Group (Color Themes)
+| Theme | Color Overrides | Purpose |
+|-------|-----------------|---------|
+| Light | Light mode colors | Bright background, dark text |
+| Dark | Dark mode colors | Dark background, light text |
 
-Want to add Brand3?
+**Files enabled:** `03_Themes/Light` or `03_Themes/Dark`
 
-### Steps:
-1. Create `01_Brand/Brand3.json` with brand colors/typography
-2. Update `$modes.json`:
-   - Add "Brand3" to Brand mode values
-   - Add 6 new modeMapping entries for Brand3 combinations
-3. Add 6 new theme entries to `$themes.json` (Compact/Spacious for Light/Dark)
-4. Sync to Figma
+### Spacing Group
+| Theme | Spacing Multiplier | Use Case |
+|-------|-------------------|----------|
+| Default | 1.0x (base) | Standard layouts |
+| Compact | 0.75x | Dense/mobile layouts |
+| Spacious | 1.25x | Generous/desktop layouts |
 
-That's it! All 18 combinations now work automatically.
+**Files enabled:** `02_Layout` + `04_Responsive/Compact` or `04_Responsive/Spacious`
 
-## Reference: Mode Mapping
+## Scaling: Adding New Variants
 
-| Brand | Theme | Spacing | Color | Spacing Value |
-|-------|-------|---------|-------|---------------|
-| Default | Light | Default | Default colors | 8px |
-| Default | Light | Compact | Default colors | 7px |
-| Default | Light | Spacious | Default colors | 9px |
-| Default | Dark | Default | Dark colors | 8px |
-| Default | Dark | Compact | Dark colors | 7px |
-| Default | Dark | Spacious | Dark colors | 9px |
-| Brand2 | Light | Default | Brand2 colors | 8px |
-| Brand2 | Light | Compact | Brand2 colors | 7px |
-| Brand2 | Light | Spacious | Brand2 colors | 9px |
-| Brand2 | Dark | Default | Brand2 Dark colors | 8px |
-| Brand2 | Dark | Compact | Brand2 Dark colors | 7px |
-| Brand2 | Dark | Spacious | Brand2 Dark colors | 9px |
+### Add Brand3
 
-## Technical Details
+1. **Create `01_Brand/Brand3.json`** with Brand3 colors/typography
+2. **Create new theme in $themes.json**:
+   ```json
+   {
+     "id": "brand-brand3",
+     "name": "Brand3",
+     "group": "Brand",
+     "selectedTokenSets": {
+       "01_Brand/Brand3": "enabled",
+       // ... other sets ...
+     }
+   }
+   ```
+3. **Sync to Figma** → Brand collection now has 3 modes!
 
-### JSON Structure
+### Add Responsive Typography
 
-**$modes.json** defines the mode structure and mapping:
+If Brand2 needs different typography sizes at Compact spacing:
+
+1. **Create `04_Responsive/CompactTypography.json`** with Brand2 type overrides
+2. **Create new theme**:
+   ```json
+   {
+     "id": "spacing-compact-brand2",
+     "name": "Compact",
+     "group": "Spacing-Brand2",
+     "selectedTokenSets": {
+       "04_Responsive/Compact": "enabled",
+       "04_Responsive/CompactTypography": "enabled"
+     }
+   }
+   ```
+3. **Sync to Figma** → New Spacing-Brand2 collection!
+
+## JSON Structure
+
+### Theme Group in $themes.json
+
 ```json
 {
-  "modes": {
-    "Brand": { "values": ["Default", "Brand2"] },
-    "Theme": { "values": ["Light", "Dark"] },
-    "Spacing": { "values": ["Default", "Compact", "Spacious"] }
-  },
-  "modeMapping": {
-    "Default/Light/Default": { "brand": "01_Brand/Default", ... }
+  "id": "brand-default",
+  "name": "Default",
+  "group": "Brand",
+  "description": "Default brand - colors and typography",
+  "selectedTokenSets": {
+    "_Base/Value": "enabled",
+    "01_Brand/Default": "enabled",
+    "02_Layout": "enabled",
+    "05_Interactions/States": "enabled",
+    "07_Components/Compositions": "enabled"
   }
 }
 ```
 
-**$themes.json** contains the master modes theme:
-```json
-{
-  "id": "00_master-modes",
-  "modes": {
-    "Brand": ["Default", "Brand2"],
-    "Theme": ["Light", "Dark"],
-    "Spacing": ["Default", "Compact", "Spacious"]
-  },
-  "modeValues": { /* 12 combinations */ }
+**Key Points:**
+- `group`: Becomes Variable Collection name in Figma
+- `name`: Becomes Mode name in Figma
+- `selectedTokenSets`: Which token files load for this mode
+- All token sets load together (no exclusions = simplicity!)
+
+## Why This Approach?
+
+### ✅ Benefits Over 12 Combined Themes
+
+| Aspect | 12 Themes | Theme Groups (Modes) |
+|--------|-----------|----------------------|
+| **Flexibility** | Fixed combinations | Independent modes |
+| **Switching** | Pick new theme (reload) | Toggle any mode |
+| **Adding Brand3** | Create 6 new themes | Add 1 new theme |
+| **Figma Collections** | 1 complex collection | 3 simple collections |
+| **Developer Export** | Complex permutations | Each mode independent |
+| **Discoverability** | 12 choices overwhelming | 3 groups of 2-3 modes |
+
+### ✅ How Modes Export to Code
+
+When developers export:
+
+```bash
+# Each collection exports independently
+output/
+  ├── Brand/
+  │   ├── default.json    # Default brand tokens
+  │   └── brand2.json     # Brand2 tokens
+  ├── Theme/
+  │   ├── light.json      # Light mode tokens
+  │   └── dark.json       # Dark mode tokens
+  └── Spacing/
+      ├── default.json    # Base spacing
+      ├── compact.json    # Compact spacing
+      └── spacious.json   # Spacious spacing
+```
+
+Developers use these in code:
+```javascript
+// CSS variables
+:root {
+  // Load base tokens
+  --color-primary: var(--Brand-default);
+  --spacing-8: var(--Spacing-default);
+}
+
+// Toggle modes via class
+body.dark {
+  --color-primary: var(--Theme-dark);
+}
+
+body.compact-layout {
+  --spacing-8: var(--Spacing-compact);
 }
 ```
 
-### File Organization
-
-Token files remain organized by purpose:
-- `01_Brand/` — Brand-specific colors, typography
-- `02_Layout.json` — Base spacing/radius
-- `03_Themes/` — Color theme overrides
-- `04_Responsive/` — Spacing overrides (Compact/Spacious)
-- `05_Interactions/` — Interactive states
-- `07_Components/` — Component compositions
-
 ## FAQ
 
-**Q: Can I still use the 12 individual themes?**  
-A: Yes! They're still available. The master modes theme is optional.
+**Q: What if I want responsive typography to change with Spacing mode?**
+A: Create separate token sets (`04_Responsive/CompactType.json`) and include them in the Spacing theme. When Spacing mode changes, typography updates too.
 
-**Q: What happens if I add a new spacing mode?**  
-A: You'd need to create new Spacing values and update all 12 (or more) mode combinations. Master modes handle this automatically.
+**Q: Can I have 4+ mode groups?**
+A: Yes! Create more theme groups in $themes.json. Each becomes a separate collection in Figma.
 
-**Q: Can I have more than 3 mode groups?**  
-A: Yes! Add more groups to `$modes.json` (e.g., Density, Contrast, etc.).
+**Q: What's the difference between this and the old 12 themes?**
+A: Old approach = designer picks 1 theme, locks into all 3 dimensions. New approach = designer toggles each dimension independently.
 
-**Q: How do I export tokens in a specific mode combination?**  
-A: Use Figma Tokens plugin's export feature after selecting your modes.
+**Q: Do modes require Figma Tokens Studio Pro?**
+A: Theme Switching is a Pro feature, but exporting to Figma Variables (free) works with the exported data.
 
-## Support
+**Q: Can I have more than one mode active per collection?**
+A: No - Figma Variables allow only 1 mode active per collection at a time. This is the "either this or that" logic.
 
-For questions about modes:
-1. Check this guide
-2. Review `$modes.json` for current mapping
-3. See `$themes.json` for theme definitions
-4. Check `TECHNICAL_REFERENCE.md` for architecture details
+## Resources
 
+- [Tokens Studio - Themes that Switch](https://docs.tokens.studio/manage-themes/simple-switch-guide)
+- [Figma Variables Documentation](https://help.figma.com/hc/en-us/articles/15343816063012)
+- [Design Token Fundamentals](./TOKEN_FUNDAMENTALS.md)
+
+## Next Steps
+
+1. **Sync to Figma** - Push this configuration to your remote repo
+2. **Test in Figma** - Open Figma Tokens plugin, load tokens, see 3 collections
+3. **Toggle modes** - Try switching between Brand/Theme/Spacing
+4. **Apply to components** - Assign variables to component properties
+5. **Export to code** - Use SD-Transforms to convert modes for development
+
+---
+
+**Questions?** Check the Tokens Studio docs or review `$themes.json` for current theme definitions.

@@ -1,0 +1,67 @@
+{
+  "fontWeight": {
+    "regular": {
+      "value": 400,
+      "type": "fontWeights"
+    },
+    "semibold": {
+      "value": 700,
+      "type": "fontWeights",
+      "description": "Compact uses bolder semibold for emphasis"
+    },
+    "medium": {
+      "value": 500,
+      "type": "fontWeights"
+    }
+  },
+  "fontFamily": {
+    "hmi": "System UI, -apple-system, sans-serif",
+    "cluster": "Courier New, monospace",
+    "display": "System UI, -apple-system, sans-serif"
+  },
+  "letterSpacing": {},
+  "Typography": {
+    "body-100": {
+      "value": {
+        "fontFamily": "System UI, -apple-system, sans-serif",
+        "fontWeight": 500,
+        "lineHeight": 1.4,
+        "fontSize": 18,
+        "letterSpacing": 0.2,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Compact body - tighter line height"
+    },
+    "body-80": {
+      "value": {
+        "fontFamily": "System UI, -apple-system, sans-serif",
+        "fontWeight": 500,
+        "lineHeight": 1.4,
+        "fontSize": 14,
+        "letterSpacing": 0.1,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Compact body - condensed"
+    },
+    "heading-80": {
+      "value": {
+        "fontFamily": "System UI, -apple-system, sans-serif",
+        "fontWeight": 700,
+        "lineHeight": 1.3,
+        "fontSize": 28,
+        "letterSpacing": 0.1,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Compact heading - bolder"
+    }
+  }
+}

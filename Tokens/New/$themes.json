@@ -5,7 +5,6 @@
     "group": "Color",
     "description": "Standard brand colors - balanced, neutral",
     "selectedTokenSets": {
-      "_Base/Value": "enabled",
       "01_Brand/Default": "enabled"
     },
     "$figmaVariableReferences": {},
@@ -17,7 +16,6 @@
     "group": "Color",
     "description": "Performance brand colors - high contrast, bold",
     "selectedTokenSets": {
-      "_Base/Value": "enabled",
       "01_Brand/Performance": "enabled"
     },
     "$figmaVariableReferences": {},
@@ -29,7 +27,6 @@
     "group": "Color",
     "description": "Luxury brand colors - elegant, refined",
     "selectedTokenSets": {
-      "_Base/Value": "enabled",
       "01_Brand/Luxury": "enabled"
     },
     "$figmaVariableReferences": {},
@@ -41,7 +38,6 @@
     "group": "Theme",
     "description": "Light color overlay - apply on top of any brand",
     "selectedTokenSets": {
-      "_Base/Value": "enabled",
       "03_Themes/Day": "enabled"
     },
     "$figmaVariableReferences": {},
@@ -53,7 +49,6 @@
     "group": "Theme",
     "description": "Dark color overlay - apply on top of any brand",
     "selectedTokenSets": {
-      "_Base/Value": "enabled",
       "03_Themes/Night": "enabled"
     },
     "$figmaVariableReferences": {},
@@ -98,8 +93,7 @@
     "group": "Typography",
     "description": "Standard typography (tt commons pro, balanced weights)",
     "selectedTokenSets": {
-      "_Base/Value": "enabled",
-      "01_Brand/Default": "enabled"
+      "_Base/Value": "enabled"
     },
     "$figmaVariableReferences": {},
     "$figmaStyleReferences": {}
@@ -111,7 +105,7 @@
     "description": "Performance typography (System UI, bold weights)",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Performance": "enabled"
+      "01_Brand/Performance-Typography": "enabled"
     },
     "$figmaVariableReferences": {},
     "$figmaStyleReferences": {}
@@ -123,7 +117,7 @@
     "description": "Luxury typography (Georgia serif, elegant)",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Luxury": "enabled"
+      "01_Brand/Luxury-Typography": "enabled"
     },
     "$figmaVariableReferences": {},
     "$figmaStyleReferences": {}

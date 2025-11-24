@@ -397,15 +397,15 @@
   },
   "blur": {
     "blur-light": {
-      "value": "{spacing-primitives.4}",
+      "value": "{spacing.4}",
       "type": "blur"
     },
     "blur-medium": {
-      "value": "{spacing-primitives.8}",
+      "value": "{spacing.8}",
       "type": "blur"
     },
     "blur-heavy": {
-      "value": "{spacing-primitives.16}",
+      "value": "{spacing.16}",
       "type": "blur"
     }
   },

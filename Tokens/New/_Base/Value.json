@@ -505,7 +505,7 @@
       }
     }
   },
-  "spacing-primitives": {
+  "spacing": {
     "0": {
       "value": 0,
       "type": "dimension"

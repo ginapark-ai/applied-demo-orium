@@ -4,10 +4,10 @@
       "value": 400,
       "type": "fontWeights"
     },
-    "semibold": {
+    "demibold": {
       "value": 700,
       "type": "fontWeights",
-      "description": "Compact uses bolder semibold for emphasis"
+      "description": "Performance uses bolder weights for emphasis"
     },
     "medium": {
       "value": 500,
@@ -16,14 +16,14 @@
   },
   "fontFamily": {
     "hmi": {
-      "value": "Monaco, Courier New, monospace",
+      "value": "Arial, sans-serif",
       "type": "fontFamilies",
-      "description": "Performance brand - bold monospace"
+      "description": "Performance brand - clean sans-serif"
     },
     "cluster": {
       "value": "Courier New, monospace",
       "type": "fontFamilies",
-      "description": "Performance brand - compact monospace"
+      "description": "Performance brand - monospace variant"
     }
   },
   "letterSpacing": {},
@@ -40,7 +40,7 @@
         "textDecoration": "none"
       },
       "type": "typography",
-      "description": "Compact body - tighter line height"
+      "description": "Performance body - tighter line height"
     },
     "body-80": {
       "value": {
@@ -54,7 +54,7 @@
         "textDecoration": "none"
       },
       "type": "typography",
-      "description": "Compact body - condensed"
+      "description": "Performance body - condensed"
     },
     "heading-80": {
       "value": {
@@ -68,7 +68,7 @@
         "textDecoration": "none"
       },
       "type": "typography",
-      "description": "Compact heading - bolder"
+      "description": "Performance heading - bolder"
     }
   }
 }

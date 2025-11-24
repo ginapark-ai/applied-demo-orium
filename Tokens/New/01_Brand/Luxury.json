@@ -1,0 +1,504 @@
+{
+  "color": {
+    "brandPrimary": {
+      "primary": {
+        "value": "#9b59b6",
+        "type": "color",
+        "description": "Spacious brand primary - deep purple"
+      },
+      "secondary": {
+        "value": "#b573d1",
+        "type": "color",
+        "description": "Spacious brand secondary - medium purple"
+      },
+      "tertiary": {
+        "value": "#d7a6e8",
+        "type": "color",
+        "description": "Spacious brand tertiary - light purple"
+      },
+      "accent": {
+        "value": "#f39c12",
+        "type": "color",
+        "description": "Spacious brand accent - gold"
+      }
+    },
+    "functional": {
+      "warning": {
+        "value": "{color-primitives.Red.50}",
+        "type": "color"
+      },
+      "caution": {
+        "value": "{color-primitives.Amber.50}",
+        "type": "color"
+      },
+      "positive": {
+        "value": "{color-primitives.Green.50}",
+        "type": "color"
+      },
+      "safety": {
+        "value": "{color-primitives.Red.40}",
+        "type": "color"
+      },
+      "informative": {
+        "value": "{color-primitives.BlueGray.60}",
+        "type": "color"
+      }
+    },
+    "whites": {
+      "white-100-primary": {
+        "value": "{color-primitives.White.White}",
+        "type": "color"
+      },
+      "white-90-default": {
+        "value": "{color-primitives.White.opacity-90}",
+        "type": "color"
+      },
+      "white-80": {
+        "value": "{color-primitives.White.opacity-80}",
+        "type": "color"
+      },
+      "white-70": {
+        "value": "{color-primitives.White.opacity-70}",
+        "type": "color"
+      },
+      "white-60-inactive": {
+        "value": "{color-primitives.White.opacity-60}",
+        "type": "color"
+      },
+      "white-50": {
+        "value": "{color-primitives.White.opacity-50}",
+        "type": "color"
+      },
+      "white-40": {
+        "value": "{color-primitives.White.opacity-40}",
+        "type": "color"
+      },
+      "white-30-disabled": {
+        "value": "{color-primitives.White.opacity-30}",
+        "type": "color"
+      },
+      "white-20": {
+        "value": "{color-primitives.White.opacity-20}",
+        "type": "color"
+      },
+      "white-10": {
+        "value": "{color-primitives.White.opacity-10}",
+        "type": "color"
+      },
+      "white-5": {
+        "value": "{color-primitives.White.opacity-5}",
+        "type": "color"
+      },
+      "white-3": {
+        "value": "{color-primitives.White.opacity-3}",
+        "type": "color"
+      },
+      "white-1": {
+        "value": "{color-primitives.White.opacity-1}",
+        "type": "color"
+      },
+      "white-15": {
+        "value": "{color-primitives.White.opacity-15}",
+        "type": "color"
+      }
+    },
+    "blacks": {
+      "black-100-primary": {
+        "value": "{color-primitives.Black.Black}",
+        "type": "color"
+      },
+      "black-90-default": {
+        "value": "{color-primitives.Black.opacity-90}",
+        "type": "color"
+      },
+      "black-80": {
+        "value": "{color-primitives.Black.opacity-80}",
+        "type": "color"
+      },
+      "black-70": {
+        "value": "{color-primitives.Black.opacity-70}",
+        "type": "color"
+      },
+      "black-60-inactive": {
+        "value": "{color-primitives.Black.opacity-60}",
+        "type": "color"
+      },
+      "black-50": {
+        "value": "{color-primitives.Black.opacity-50}",
+        "type": "color"
+      },
+      "black-40": {
+        "value": "{color-primitives.Black.opacity-40}",
+        "type": "color"
+      },
+      "black-30-disabled": {
+        "value": "{color-primitives.Black.opacity-30}",
+        "type": "color"
+      },
+      "black-20": {
+        "value": "{color-primitives.Black.opacity-20}",
+        "type": "color"
+      },
+      "black-10": {
+        "value": "{color-primitives.Black.opacity-10}",
+        "type": "color"
+      },
+      "black-5": {
+        "value": "{color-primitives.Black.opacity-5}",
+        "type": "color"
+      },
+      "black-3": {
+        "value": "{color-primitives.Black.opacity-3}",
+        "type": "color"
+      },
+      "black-15": {
+        "value": "{color-primitives.Black.opacity-15}",
+        "type": "color"
+      },
+      "black-1": {
+        "value": "{color-primitives.Black.opacity-1}",
+        "type": "color"
+      }
+    },
+    "active": {
+      "active-dark-primary": {
+        "value": "#b573d1",
+        "type": "color",
+        "description": "Spacious active - medium purple"
+      },
+      "active-dark-secondary": {
+        "value": "#9b59b6",
+        "type": "color",
+        "description": "Spacious active secondary - deep purple"
+      },
+      "active-dark-disabled": {
+        "value": "#d7a6e8",
+        "type": "color",
+        "description": "Spacious disabled - light purple"
+      },
+      "active-light-disabled": {
+        "value": "#f39c12",
+        "type": "color"
+      },
+      "active-light-secondary": {
+        "value": "#f39c12",
+        "type": "color"
+      },
+      "active-light-primary": {
+        "value": "#b573d1",
+        "type": "color"
+      }
+    },
+    "background": {
+      "background-light-primary": {
+        "value": "#f5e6ccff",
+        "type": "color",
+        "description": "Spacious light background - warm gold tone"
+      },
+      "background-dark-primary": {
+        "value": "#3d2a4dff",
+        "type": "color",
+        "description": "Spacious dark background - deep purple"
+      }
+    },
+    "red": {
+      "red-100": {
+        "value": "{color-primitives.Red.80}",
+        "type": "color"
+      },
+      "red-70": {
+        "value": "{color-primitives.Red.70}",
+        "type": "color"
+      },
+      "red-30": {
+        "value": "{color-primitives.Red.30}",
+        "type": "color"
+      },
+      "red-10": {
+        "value": "{color-primitives.Red.10}",
+        "type": "color"
+      },
+      "red-80": {
+        "value": "{color-primitives.Red.80}",
+        "type": "color"
+      }
+    },
+    "green": {
+      "green-10": {
+        "value": "{color-primitives.Green.10}",
+        "type": "color"
+      },
+      "green-80": {
+        "value": "{color-primitives.Green.80}",
+        "type": "color"
+      }
+    },
+    "amber": {
+      "amber-10": {
+        "value": "{color-primitives.Amber.10}",
+        "type": "color"
+      },
+      "amber-80": {
+        "value": "{color-primitives.Amber.80}",
+        "type": "color"
+      }
+    }
+  },
+  "fontWeight": {
+    "regular": {
+      "value": 400,
+      "type": "fontWeights"
+    },
+    "demibold": {
+      "value": 600,
+      "type": "fontWeights"
+    },
+    "medium": {
+      "value": 500,
+      "type": "fontWeights"
+    }
+  },
+  "fontFamily": {
+    "hmi": {
+      "value": "Georgia, serif",
+      "type": "fontFamilies",
+      "description": "Spacious uses serif font for elegance"
+    },
+    "cluster": {
+      "value": "IBM Plex Mono, monospace",
+      "type": "fontFamilies"
+    }
+  },
+  "borderRadius": {
+    "8": {
+      "value": 8,
+      "type": "borderRadius"
+    },
+    "16": {
+      "value": 16,
+      "type": "borderRadius"
+    }
+  },
+  "opacity": {
+    "full": {
+      "value": 1,
+      "type": "opacity"
+    },
+    "active": {
+      "value": 1,
+      "type": "opacity"
+    },
+    "default": {
+      "value": 0.88,
+      "type": "opacity"
+    },
+    "hover": {
+      "value": 0.88,
+      "type": "opacity"
+    },
+    "inactive": {
+      "value": 0.75,
+      "type": "opacity"
+    },
+    "disabled": {
+      "value": 0.5,
+      "type": "opacity"
+    },
+    "subtle": {
+      "value": 0.4,
+      "type": "opacity"
+    },
+    "light": {
+      "value": 0.16,
+      "type": "opacity"
+    }
+  },
+  "blur": {
+    "blur-light": {
+      "value": "{spacing.4}",
+      "type": "blur"
+    },
+    "blur-medium": {
+      "value": "{spacing.8}",
+      "type": "blur"
+    },
+    "blur-heavy": {
+      "value": "{spacing.16}",
+      "type": "blur"
+    }
+  },
+  "backdropFilter": {
+    "backdrop-light": {
+      "value": "blur({blur.blur-light}) brightness(0.95)",
+      "type": "backdropFilter"
+    },
+    "backdrop-medium": {
+      "value": "blur({blur.blur-medium}) brightness(0.92)",
+      "type": "backdropFilter"
+    },
+    "backdrop-heavy": {
+      "value": "blur({blur.blur-heavy}) brightness(0.85)",
+      "type": "backdropFilter"
+    }
+  },
+  "letterSpacing": {
+    "tight": {
+      "value": -0.5,
+      "type": "letterSpacing"
+    },
+    "normal": {
+      "value": 0,
+      "type": "letterSpacing"
+    },
+    "loose": {
+      "value": 0.4,
+      "type": "letterSpacing",
+      "description": "Spacious uses looser letter spacing"
+    }
+  },
+  "gradient": {
+    "primary-linear": {
+      "value": "linear-gradient(90deg, #9b59b6 0%, #f39c12 100%)",
+      "type": "color",
+      "description": "Spacious gradient - purple to gold"
+    },
+    "primary-diagonal": {
+      "value": "linear-gradient(45deg, #b573d1 0%, #f39c12 50%, #d7a6e8 100%)",
+      "type": "color",
+      "description": "Spacious diagonal gradient"
+    },
+    "border-light": {
+      "value": "linear-gradient(90deg, #f39c1233 0%, #00000000 100%)",
+      "type": "color"
+    },
+    "border-dark": {
+      "value": "linear-gradient(90deg, #9b59b61a 0%, #9b59b605 100%)",
+      "type": "color"
+    },
+    "bg-dark-highlight": {
+      "value": "linear-gradient(135deg, #5a3f7a 0%, #3d2a4d 100%)",
+      "type": "color",
+      "description": "Spacious dark highlight - purple tones"
+    },
+    "bg-dark-secondary": {
+      "value": "linear-gradient(135deg, #9b59b61a 0%, #9b59b60d 100%)",
+      "type": "color"
+    },
+    "bg-light-secondary": {
+      "value": "linear-gradient(135deg, #f5e6cccc 0%, #f39c1266 100%)",
+      "type": "color",
+      "description": "Spacious light secondary - gold tones"
+    },
+    "bg-light-highlight": {
+      "value": "linear-gradient(135deg, #f5e6cc99 0%, #f39c1299 100%)",
+      "type": "color",
+      "description": "Spacious light highlight"
+    },
+    "icon-nav-inactive": {
+      "value": "linear-gradient(134deg, #b573d1 0%, #9b59b6 100%)",
+      "type": "color"
+    },
+    "icon-nav-active": {
+      "value": "linear-gradient(134deg, #f39c12 0%, #f5e6cc 100%)",
+      "type": "color"
+    }
+  },
+  "Typography": {
+    "display-100": {
+      "value": {
+        "fontFamily": "Georgia, serif",
+        "fontWeight": 400,
+        "lineHeight": 1.2,
+        "fontSize": 180,
+        "letterSpacing": -1,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious display - elegant serif"
+    },
+    "display-80": {
+      "value": {
+        "fontFamily": "Georgia, serif",
+        "fontWeight": 400,
+        "lineHeight": 1.25,
+        "fontSize": 140,
+        "letterSpacing": -0.5,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography"
+    },
+    "heading-100": {
+      "value": {
+        "fontFamily": "Georgia, serif",
+        "fontWeight": 600,
+        "lineHeight": 1.4,
+        "fontSize": 48,
+        "letterSpacing": 0.2,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious heading - serif with generous spacing"
+    },
+    "heading-80": {
+      "value": {
+        "fontFamily": "Georgia, serif",
+        "fontWeight": 600,
+        "lineHeight": 1.45,
+        "fontSize": 36,
+        "letterSpacing": 0.3,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography"
+    },
+    "body-100": {
+      "value": {
+        "fontFamily": "Georgia, serif",
+        "fontWeight": 400,
+        "lineHeight": 1.7,
+        "fontSize": 20,
+        "letterSpacing": 0.4,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious body - generous line height and letter spacing"
+    },
+    "body-80": {
+      "value": {
+        "fontFamily": "Georgia, serif",
+        "fontWeight": 400,
+        "lineHeight": 1.6,
+        "fontSize": 16,
+        "letterSpacing": 0.3,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography"
+    },
+    "label-100": {
+      "value": {
+        "fontFamily": "Georgia, serif",
+        "fontWeight": 600,
+        "lineHeight": 1.5,
+        "fontSize": 16,
+        "letterSpacing": 0.6,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious label - elegant spacing"
+    }
+  }
+}
+

@@ -1,9 +1,9 @@
 [
   {
-    "id": "brand-default",
-    "name": "Default",
+    "id": "brand-standard",
+    "name": "Standard",
     "group": "Brand",
-    "description": "Default brand - colors and typography",
+    "description": "Standard brand - Default spacing (8px base grid), balanced colors & typography",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "01_Brand/Default": "enabled",
@@ -15,14 +15,31 @@
     "$figmaStyleReferences": {}
   },
   {
-    "id": "brand-brand2",
-    "name": "Brand2",
+    "id": "brand-performance",
+    "name": "Performance",
     "group": "Brand",
-    "description": "Brand2 variant - colors and typography",
+    "description": "Performance brand - Compact spacing (6px dense), high-contrast colors & bold typography",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Brand2": "enabled",
+      "01_Brand/Performance": "enabled",
       "02_Layout": "enabled",
+      "04_Responsive/Compact": "enabled",
+      "05_Interactions/States": "enabled",
+      "07_Components/Compositions": "enabled"
+    },
+    "$figmaVariableReferences": {},
+    "$figmaStyleReferences": {}
+  },
+  {
+    "id": "brand-luxury",
+    "name": "Luxury",
+    "group": "Brand",
+    "description": "Luxury brand - Spacious spacing (10px generous), elegant colors & refined typography",
+    "selectedTokenSets": {
+      "_Base/Value": "enabled",
+      "01_Brand/Luxury": "enabled",
+      "02_Layout": "enabled",
+      "04_Responsive/Spacious": "enabled",
       "05_Interactions/States": "enabled",
       "07_Components/Compositions": "enabled"
     },
@@ -33,7 +50,7 @@
     "id": "theme-light",
     "name": "Light",
     "group": "Theme",
-    "description": "Light color theme",
+    "description": "Light color theme - Apply on top of any brand mode",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "03_Themes/Light": "enabled",
@@ -47,54 +64,10 @@
     "id": "theme-dark",
     "name": "Dark",
     "group": "Theme",
-    "description": "Dark color theme",
+    "description": "Dark color theme - Apply on top of any brand mode",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "03_Themes/Dark": "enabled",
-      "05_Interactions/States": "enabled",
-      "07_Components/Compositions": "enabled"
-    },
-    "$figmaVariableReferences": {},
-    "$figmaStyleReferences": {}
-  },
-  {
-    "id": "spacing-default",
-    "name": "Default",
-    "group": "Spacing",
-    "description": "Default spacing density (base)",
-    "selectedTokenSets": {
-      "_Base/Value": "enabled",
-      "02_Layout": "enabled",
-      "05_Interactions/States": "enabled",
-      "07_Components/Compositions": "enabled"
-    },
-    "$figmaVariableReferences": {},
-    "$figmaStyleReferences": {}
-  },
-  {
-    "id": "spacing-compact",
-    "name": "Compact",
-    "group": "Spacing",
-    "description": "Compact spacing density (dense)",
-    "selectedTokenSets": {
-      "_Base/Value": "enabled",
-      "02_Layout": "enabled",
-      "04_Responsive/Compact": "enabled",
-      "05_Interactions/States": "enabled",
-      "07_Components/Compositions": "enabled"
-    },
-    "$figmaVariableReferences": {},
-    "$figmaStyleReferences": {}
-  },
-  {
-    "id": "spacing-spacious",
-    "name": "Spacious",
-    "group": "Spacing",
-    "description": "Spacious spacing density (generous)",
-    "selectedTokenSets": {
-      "_Base/Value": "enabled",
-      "02_Layout": "enabled",
-      "04_Responsive/Spacious": "enabled",
       "05_Interactions/States": "enabled",
       "07_Components/Compositions": "enabled"
     },

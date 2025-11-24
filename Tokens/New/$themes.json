@@ -7,7 +7,6 @@
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "01_Brand/Default": "enabled",
-      "02_Layout": "enabled",
       "05_Interactions/States": "enabled",
       "07_Components/Compositions": "enabled"
     },
@@ -22,8 +21,6 @@
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "01_Brand/Performance": "enabled",
-      "02_Layout": "enabled",
-      "04_Responsive/Compact": "enabled",
       "05_Interactions/States": "enabled",
       "07_Components/Compositions": "enabled"
     },
@@ -38,8 +35,6 @@
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "01_Brand/Luxury": "enabled",
-      "02_Layout": "enabled",
-      "04_Responsive/Spacious": "enabled",
       "05_Interactions/States": "enabled",
       "07_Components/Compositions": "enabled"
     },

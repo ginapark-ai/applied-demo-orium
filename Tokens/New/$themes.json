@@ -6,8 +6,7 @@
     "description": "Standard brand - unified color, typography, and spacing",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Default": "enabled",
-      "02_Spacing/Standard": "enabled"
+      "01_Brand/Default": "enabled"
     },
     "$figmaVariableReferences": {
       "color.brandPrimary.primary": "848640217af57db8e5222bc0c5b349dfc5d77ebf",
@@ -281,8 +280,7 @@
     "description": "Performance brand - unified color, typography, and spacing",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Performance": "enabled",
-      "02_Spacing/Performance": "enabled"
+      "01_Brand/Performance": "enabled"
     },
     "$figmaVariableReferences": {
       "color.brandPrimary.primary": "848640217af57db8e5222bc0c5b349dfc5d77ebf",
@@ -548,8 +546,7 @@
     "description": "Luxury brand - unified color, typography, and spacing",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Luxury": "enabled",
-      "02_Spacing/Luxury": "enabled"
+      "01_Brand/Luxury": "enabled"
     },
     "$figmaVariableReferences": {
       "color.brandPrimary.primary": "848640217af57db8e5222bc0c5b349dfc5d77ebf",

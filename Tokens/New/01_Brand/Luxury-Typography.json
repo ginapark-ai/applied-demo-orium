@@ -44,7 +44,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.2,
+        "lineHeight": "{lineHeight.116}",
         "fontSize": 180,
         "letterSpacing": -1,
         "paragraphSpacing": 0,
@@ -58,7 +58,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.25,
+        "lineHeight": "{lineHeight.116}",
         "fontSize": 140,
         "letterSpacing": -0.5,
         "paragraphSpacing": 0,
@@ -71,7 +71,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.4,
+        "lineHeight": "{lineHeight.72}",
         "fontSize": 48,
         "letterSpacing": 0.2,
         "paragraphSpacing": 0,
@@ -85,7 +85,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": "1.45",
+        "lineHeight": "{lineHeight.48}",
         "fontSize": "36",
         "letterSpacing": "0.3",
         "paragraphSpacing": "0",
@@ -98,7 +98,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.7,
+        "lineHeight": "{lineHeight.32}",
         "fontSize": 20,
         "letterSpacing": 0.4,
         "paragraphSpacing": 0,
@@ -112,7 +112,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.6,
+        "lineHeight": "{lineHeight.24}",
         "fontSize": 16,
         "letterSpacing": 0.3,
         "paragraphSpacing": 0,
@@ -125,7 +125,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.5,
+        "lineHeight": "{lineHeight.24}",
         "fontSize": 16,
         "letterSpacing": 0.6,
         "paragraphSpacing": 0,

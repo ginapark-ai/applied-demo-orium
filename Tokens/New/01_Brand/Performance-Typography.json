@@ -30,7 +30,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.4,
+        "lineHeight": "{lineHeight.24}",
         "fontSize": 18,
         "letterSpacing": 0.2,
         "paragraphSpacing": 0,
@@ -44,7 +44,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": 1.4,
+        "lineHeight": "{lineHeight.20}",
         "fontSize": 14,
         "letterSpacing": 0.1,
         "paragraphSpacing": 0,
@@ -58,7 +58,7 @@
       "value": {
         "fontFamily": "{fontFamily.hmi}",
         "fontWeight": "{fontWeight.regular}",
-        "lineHeight": "1.3",
+        "lineHeight": "{lineHeight.36}",
         "fontSize": "28",
         "letterSpacing": "0.1",
         "paragraphSpacing": "0",

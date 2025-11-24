@@ -6,15 +6,30 @@
         "type": "color",
         "description": "Day: Light white surface - primary background"
       },
+      "primary-gradient": {
+        "value": "linear-gradient(120.76deg, rgba(255, 255, 255, 0.95) 1.63%, rgba(255, 255, 255, 0.85) 100%)",
+        "type": "color",
+        "description": "Day: Light white surface gradient - subtle depth"
+      },
       "secondary": {
         "value": "#F5F5F5",
         "type": "color",
         "description": "Day: Light gray surface - secondary background"
       },
+      "secondary-gradient": {
+        "value": "linear-gradient(120.76deg, rgba(245, 245, 245, 0.95) 1.63%, rgba(232, 232, 232, 0.85) 100%)",
+        "type": "color",
+        "description": "Day: Light gray surface gradient - subtle depth"
+      },
       "tertiary": {
         "value": "#E8E8E8",
         "type": "color",
         "description": "Day: Light gray surface - tertiary background"
+      },
+      "tertiary-gradient": {
+        "value": "linear-gradient(120.76deg, rgba(232, 232, 232, 0.9) 1.63%, rgba(220, 220, 220, 0.8) 100%)",
+        "type": "color",
+        "description": "Day: Light gray surface gradient - subtle depth"
       }
     },
     "text": {

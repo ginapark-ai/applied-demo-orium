@@ -84,11 +84,11 @@
     "heading-80": {
       "value": {
         "fontFamily": "{fontFamily.hmi}",
-        "fontWeight": 600,
-        "lineHeight": 1.45,
-        "fontSize": 36,
-        "letterSpacing": 0.3,
-        "paragraphSpacing": 0,
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "1.45",
+        "fontSize": "36",
+        "letterSpacing": "0.3",
+        "paragraphSpacing": "0",
         "textCase": "none",
         "textDecoration": "none"
       },

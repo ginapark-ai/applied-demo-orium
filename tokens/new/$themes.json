@@ -355,7 +355,7 @@
     "description": "Standard typography (tt commons pro, balanced weights)",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Default-Typography": "enabled"
+      "01_Brand/Default": "enabled"
     },
     "$figmaVariableReferences": {
       "fontWeight.regular": "c7db717ed6e29c6629e5fee193ec98b7e2dd4bcd",
@@ -575,7 +575,7 @@
     "description": "Performance typography (System UI, bold weights)",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Performance-Typography": "enabled"
+      "01_Brand/Performance": "enabled"
     },
     "$figmaVariableReferences": {
       "fontFamily.hmi": "cc0c2fdac7c3fcdae8157810e3a3390b1aab3afc",
@@ -799,7 +799,7 @@
     "description": "Luxury typography (Georgia serif, elegant)",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
-      "01_Brand/Luxury-Typography": "enabled"
+      "01_Brand/Luxury": "enabled"
     },
     "$figmaVariableReferences": {
       "fontFamily.hmi": "cc0c2fdac7c3fcdae8157810e3a3390b1aab3afc",

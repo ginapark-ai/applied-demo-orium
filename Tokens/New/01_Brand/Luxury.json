@@ -243,5 +243,142 @@
         "type": "color"
       }
     }
+  },
+  "fontWeight": {
+    "regular": {
+      "value": 400,
+      "type": "fontWeights"
+    },
+    "demibold": {
+      "value": 600,
+      "type": "fontWeights"
+    },
+    "medium": {
+      "value": 500,
+      "type": "fontWeights"
+    }
+  },
+  "fontFamily": {
+    "hmi": {
+      "value": "Georgia, serif",
+      "type": "fontFamilies",
+      "description": "Spacious uses serif font for elegance"
+    },
+    "cluster": {
+      "value": "IBM Plex Mono, monospace",
+      "type": "fontFamilies"
+    }
+  },
+  "letterSpacing": {
+    "tight": {
+      "value": -0.5,
+      "type": "letterSpacing"
+    },
+    "normal": {
+      "value": 0,
+      "type": "letterSpacing"
+    },
+    "loose": {
+      "value": 0.4,
+      "type": "letterSpacing",
+      "description": "Spacious uses looser letter spacing"
+    }
+  },
+  "Typography": {
+    "display-100": {
+      "value": {
+        "fontFamily": "{fontFamily.hmi}",
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "{lineHeight.116}",
+        "fontSize": 180,
+        "letterSpacing": -1,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious display - elegant serif"
+    },
+    "display-80": {
+      "value": {
+        "fontFamily": "{fontFamily.hmi}",
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "{lineHeight.116}",
+        "fontSize": 140,
+        "letterSpacing": -0.5,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography"
+    },
+    "heading-100": {
+      "value": {
+        "fontFamily": "{fontFamily.hmi}",
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "{lineHeight.72}",
+        "fontSize": 48,
+        "letterSpacing": 0.2,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious heading - serif with generous spacing"
+    },
+    "heading-80": {
+      "value": {
+        "fontFamily": "{fontFamily.hmi}",
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "{lineHeight.48}",
+        "fontSize": "36",
+        "letterSpacing": "0.3",
+        "paragraphSpacing": "0",
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography"
+    },
+    "body-100": {
+      "value": {
+        "fontFamily": "{fontFamily.hmi}",
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "{lineHeight.32}",
+        "fontSize": 20,
+        "letterSpacing": 0.4,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious body - generous line height and letter spacing"
+    },
+    "body-80": {
+      "value": {
+        "fontFamily": "{fontFamily.hmi}",
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "{lineHeight.24}",
+        "fontSize": 16,
+        "letterSpacing": 0.3,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography"
+    },
+    "label-100": {
+      "value": {
+        "fontFamily": "{fontFamily.hmi}",
+        "fontWeight": "{fontWeight.regular}",
+        "lineHeight": "{lineHeight.24}",
+        "fontSize": 16,
+        "letterSpacing": 0.6,
+        "paragraphSpacing": 0,
+        "textCase": "none",
+        "textDecoration": "none"
+      },
+      "type": "typography",
+      "description": "Spacious label - elegant spacing"
+    }
   }
 }

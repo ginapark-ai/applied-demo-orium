@@ -508,103 +508,103 @@
   "spacing": {
     "0": {
       "value": 0,
-      "type": "spacing"
+      "type": "dimension"
     },
     "1": {
       "value": 1,
-      "type": "spacing"
+      "type": "dimension"
     },
     "2": {
       "value": 2,
-      "type": "spacing"
+      "type": "dimension"
     },
     "3": {
       "value": 3,
-      "type": "spacing"
+      "type": "dimension"
     },
     "4": {
       "value": 4,
-      "type": "spacing"
+      "type": "dimension"
     },
     "5": {
       "value": 5,
-      "type": "spacing"
+      "type": "dimension"
     },
     "6": {
       "value": 6,
-      "type": "spacing"
+      "type": "dimension"
     },
     "7": {
       "value": 7,
-      "type": "spacing"
+      "type": "dimension"
     },
     "8": {
       "value": 8,
-      "type": "spacing"
+      "type": "dimension"
     },
     "10": {
       "value": 10,
-      "type": "spacing"
+      "type": "dimension"
     },
     "12": {
       "value": 12,
-      "type": "spacing"
+      "type": "dimension"
     },
     "14": {
       "value": 14,
-      "type": "spacing"
+      "type": "dimension"
     },
     "16": {
       "value": 16,
-      "type": "spacing"
+      "type": "dimension"
     },
     "18": {
       "value": 18,
-      "type": "spacing"
+      "type": "dimension"
     },
     "20": {
       "value": 20,
-      "type": "spacing"
+      "type": "dimension"
     },
     "22": {
       "value": 22,
-      "type": "spacing"
+      "type": "dimension"
     },
     "24": {
       "value": 24,
-      "type": "spacing"
+      "type": "dimension"
     },
     "28": {
       "value": 28,
-      "type": "spacing"
+      "type": "dimension"
     },
     "32": {
       "value": 32,
-      "type": "spacing"
+      "type": "dimension"
     },
     "36": {
       "value": 36,
-      "type": "spacing"
+      "type": "dimension"
     },
     "40": {
       "value": 40,
-      "type": "spacing"
+      "type": "dimension"
     },
     "44": {
       "value": 44,
-      "type": "spacing"
+      "type": "dimension"
     },
     "48": {
       "value": 48,
-      "type": "spacing"
+      "type": "dimension"
     },
     "56": {
       "value": 56,
-      "type": "spacing"
+      "type": "dimension"
     },
     "64": {
       "value": 64,
-      "type": "spacing"
+      "type": "dimension"
     }
   },
   "fontSize": {

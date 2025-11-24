@@ -1041,10 +1041,10 @@
     "$figmaModeId": "5038:19"
   },
   {
-    "id": "theme-light",
-    "name": "Light",
+    "id": "theme-day",
+    "name": "Day",
     "group": "Theme",
-    "description": "Light color theme - Apply on top of any brand mode",
+    "description": "Day color theme - Apply on top of any brand mode",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "05_Interactions/States": "enabled",
@@ -1358,10 +1358,10 @@
     "$figmaModeId": "5038:20"
   },
   {
-    "id": "theme-dark",
-    "name": "Dark",
+    "id": "theme-night",
+    "name": "Night",
     "group": "Theme",
-    "description": "Dark color theme - Apply on top of any brand mode",
+    "description": "Night color theme - Apply on top of any brand mode",
     "selectedTokenSets": {
       "_Base/Value": "enabled",
       "05_Interactions/States": "enabled",

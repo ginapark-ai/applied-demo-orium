@@ -4,9 +4,9 @@
 **Date:** November 14, 2025 | **Version:** 1.1 (Updated)  
 **Status:** Architecture ✅ Complete | Components ⚠️ In Progress (4/15)
 
-> **Active Directory:** `New/` (Restructured token system)  
-> **Legacy:** `Current/` (Previous structure - reference only)  
-> **Last Updated:** November 14, 2025 after restructuring
+> **Active Directory:** `Tokens/` (Token files directly in Tokens folder)  
+> **Legacy:** `Tokens/Current/` (Previous structure - reference only)  
+> **Last Updated:** November 2025 after moving tokens from Tokens/New/ to Tokens/
 
 ---
 
@@ -82,10 +82,10 @@ Layer 8: FIGMA INTEGRATION ($themes.json + $metadata.json)
 
 ## File Structure
 
-### Token Files (New/ - Active Structure)
+### Token Files (Tokens/ - Active Structure)
 
 ```
-New/ (Restructured Token System)
+Tokens/ (Token files directly in Tokens folder)
 ├── _Base/
 │   └── Value.json (986 lines - Core primitives)
 │       ├── color.* (color scales: 11 types + opacity variants)
@@ -547,7 +547,7 @@ Each major section includes:
 
 ## Quick Summary — What Changed
 
-| Aspect | Old (Current/) | New (New/) |
+| Aspect | Old (Tokens/Current/) | New (Tokens/) |
 |--------|----------------|-----------|
 | Structure | Flat layers (1-6) | Layered architecture (8 layers) |
 | Files | 6-8 main files | 8 organized files + config |

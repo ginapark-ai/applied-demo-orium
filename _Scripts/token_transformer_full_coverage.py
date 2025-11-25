@@ -102,24 +102,24 @@ class FullCoverageTransformer:
         """
         # Always load base tokens
         base_files = [
-            "Tokens/New/_Base/Value.json",
+            "Tokens/_Base/Value.json",
         ]
         
         # Load brand-specific tokens
         brand_files = [
-            f"Tokens/New/01_Brand/{brand}.json",
+            f"Tokens/01_Brand/{brand}.json",
         ]
         
         # Load theme-specific tokens
         theme_files = [
-            f"Tokens/New/03_Themes/{theme}.json",
+            f"Tokens/03_Themes/{theme}.json",
         ]
         
         # Load shared tokens (motion, interactions, components)
         shared_files = [
-            "Tokens/New/04_Motion/Animations.json",
-            "Tokens/New/05_Interactions/States.json",
-            "Tokens/New/07_Components/Compositions.json",
+            "Tokens/04_Motion/Animations.json",
+            "Tokens/05_Interactions/States.json",
+            "Tokens/07_Components/Compositions.json",
         ]
         
         all_files = base_files + brand_files + theme_files + shared_files

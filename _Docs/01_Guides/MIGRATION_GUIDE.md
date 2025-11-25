@@ -1,9 +1,10 @@
-# 🎯 VehicleOS Design Token System — Client Handoff Guide
+# 🎯 VehicleOS Design Token System — Migration Guide
 
-**Date:** November 12, 2025  
+**Date:** November 2025  
 **Version:** 1.0 — Production Ready  
 **Audience:** Design Systems Leads, Project Managers, Technical Teams  
 **Reading Time:** 20-30 minutes  
+**Status:** ✅ Updated to match current token structure  
 
 ---
 
@@ -176,9 +177,9 @@ Applied Intuition's VehicleOS design token system has been **completely restruct
 
 ---
 
-### 3️⃣ **02_Global.json** — Design System Semantics
+### 3️⃣ **Typography Compositions** — Typography System
 
-**Purpose:** Cross-cutting UI specifications (typography, spacing scales, accessibility)
+**Purpose:** Typography composition tokens (font sizes, line heights, font families, letter spacing)
 
 #### Original
 ```json
@@ -193,27 +194,22 @@ Applied Intuition's VehicleOS design token system has been **completely restruct
 ```
 
 #### Updated
+Typography compositions are now defined in `_Base/Value.json` under the `Typography` key:
 ```json
 {
-  "typography": {
-    "display-xxlarge": { "fontFamily": "...", "fontSize": "...", ... },
-    "display-xlarge": { ... },
-    "display-large": { ... },
-    "heading-1": { ... },
-    "heading-2": { ... },
-    "body-large": { ... },
-    "body-medium": { ... },
-    "body-small": { ... },
-    "label-large": { ... },
-    "label-medium": { ... },
-    "label-small": { ... }
-  },
-  "spacing": {
-    "spacing-2": "{spacing.2}",
-    "spacing-4": "{spacing.4}",
-    "spacing-8": "{spacing.8}",
-    "spacing-16": "{spacing.16}",
-    "spacing-32": "{spacing.32}"
+  "Typography": {
+    "heading-80": {
+      "fontSize": { "value": "{fontSize.36}", "type": "dimension" },
+      "lineHeight": { "value": "{lineHeight.48}", "type": "dimension" },
+      "fontFamily": { "value": "{fontFamily.hmi}", "type": "fontFamilies" },
+      "letterSpacing": { "value": "{letterSpacing.normal}", "type": "letterSpacing" }
+    },
+    "body-100": {
+      "fontSize": { "value": "{fontSize.20}", "type": "dimension" },
+      "lineHeight": { "value": "{lineHeight.32}", "type": "dimension" },
+      "fontFamily": { "value": "{fontFamily.hmi}", "type": "fontFamilies" },
+      "letterSpacing": { "value": "{letterSpacing.normal}", "type": "letterSpacing" }
+    }
   }
 }
 ```
@@ -222,27 +218,27 @@ Applied Intuition's VehicleOS design token system has been **completely restruct
 
 | Element | Before | After | Best Practice |
 |---------|--------|-------|---|
-| **Typography** | Limited | 11 complete scales | Material Design 3, iOS HIG |
-| **Spacing scale** | In _Base only | Semantic scale in 02_Global | Single reference point for designers |
-| **Spacing naming** | Raw numbers | Named tokens (spacing-4, spacing-8) | Clarity, easy lookup |
+| **Typography** | Limited | Complete compositions | Material Design 3, iOS HIG |
+| **Font families** | Hardcoded | Brand-specific overrides | Each brand can have different fonts |
+| **Letter spacing** | Missing | Included in compositions | Typography completeness |
 
 #### 🎯 Baymard Research Integration
-✅ **Typography scale:** 11 levels follows Nielsen/Baymard findings (users scan, need clear hierarchy)  
+✅ **Typography scale:** Complete compositions follow Nielsen/Baymard findings (users scan, need clear hierarchy)  
 ✅ **Spacing system:** Consistent 4pt grid reduces cognitive load (NN Group, "Grid Systems")  
 ✅ **Accessibility tokens:** WCAG compliance built-in (Baymard: 71% of conversion losses from accessibility)  
 ✅ **Motion tokens:** Motion guidelines included (Adobe + GV research: motion aids comprehension)  
 
 #### ✅ Benefits
 - **Consistency:** Every component uses same typography scale
-- **Accessibility:** WCAG pairs guaranteed, focus states defined
-- **Performance:** Spacing reduces option paralysis (4pt grid vs arbitrary values)
+- **Brand flexibility:** Each brand can override font families (e.g., Luxury uses serif)
+- **Completeness:** Typography compositions include all properties (size, height, family, spacing)
 - **Efficiency:** Developers reference one place, not multiple files
 
 ---
 
-### 4️⃣ **02_Semantics/Light.json & Dark.json** — Theme Overrides
+### 4️⃣ **03_Themes/Day.json & Night.json** — Theme Overrides
 
-**Purpose:** Light/Dark mode color remapping
+**Purpose:** Day/Night mode color remapping
 
 #### Original
 ```json
@@ -288,22 +284,20 @@ Applied Intuition's VehicleOS design token system has been **completely restruct
 
 ---
 
-### 5️⃣ **03_Responsive/Compact.json & Spacious.json** — Density Modes
+### 5️⃣ **Brand-Specific Spacing** — Spacing Overrides
 
-**Purpose:** Responsive spacing variants for different screen contexts
+**Purpose:** Brand-specific spacing values (each brand can have different spacing)
 
-#### NEW — Didn't exist before
+#### NEW — Brand Overrides
 
+Brands can now override spacing values in their brand files:
 ```json
+// 01_Brand/Luxury.json
 {
   "spacing": {
-    "spacing-2": 1.5,  // Compact mode
-    "spacing-4": 3,
-    "spacing-8": 6,
-    "spacing-16": 12
-  },
-  "fontSize": {
-    "body-medium": 12  // Smaller for dense layouts
+    "spacing-4": { "value": 6, "type": "dimension" },  // Luxury uses more generous spacing
+    "spacing-8": { "value": 12, "type": "dimension" },
+    "spacing-16": { "value": 20, "type": "dimension" }
   }
 }
 ```
@@ -311,27 +305,29 @@ Applied Intuition's VehicleOS design token system has been **completely restruct
 #### 🎯 Why Added?
 
 **Research:**
-- Baymard: Mobile vs. Desktop spacing needs differ by 30-40%
-- NN Group: Users expect different "breathing room" on different devices
-- Material Design 3: Responsive density is now standard
+- Different brands may need different spacing personalities
+- Luxury brands often use more generous spacing
+- Performance brands may use tighter spacing
 
 **Use Cases:**
 ```
-Spacious (Tablet, Desktop):
-├─ Larger buttons (48px+ touch targets)
-├─ More whitespace (16px padding)
-├─ Larger text (16px+ body)
+Default Brand:
+├─ Standard spacing (4pt grid)
+├─ Balanced layout
 
-Compact (Mobile):
-├─ Smaller buttons (44px touch targets)
-├─ Tighter spacing (8px padding)
-├─ Smaller text (14px body)
+Luxury Brand:
+├─ More generous spacing (6pt base)
+├─ Refined, spacious feel
+
+Performance Brand:
+├─ Tighter spacing (3pt base)
+├─ Dense, information-rich
 ```
 
 #### ✅ Benefits
-- **Responsive:** Scale components without redefining each one
-- **Consistency:** Touch targets remain accessible across densities
-- **Efficiency:** Single token set, multiple layouts
+- **Brand differentiation:** Each brand can have unique spacing personality
+- **Consistency:** Spacing remains consistent within each brand
+- **Flexibility:** Easy to adjust spacing per brand without affecting others
 
 ---
 
@@ -459,44 +455,31 @@ Compact (Mobile):
 
 ---
 
-### 8️⃣ **06_Components/Buttons.json, Cards.json, FormInputs.json, Notifications.json** — Component Tokens
+### 8️⃣ **07_Components/Compositions.json** — Component Tokens
 
 **Purpose:** Component-specific token compositions
 
-#### NEW — Didn't exist before (structure provided)
+#### NEW — Component Compositions
 
 ```json
 {
   "component": {
     "button": {
-      "primary": {
+      "danger": {
         "default": {
-          "background": "{color.primary}",
-          "color": "{color.on-primary}",
-          "padding": "{spacing.spacing-4}",
-          "borderRadius": "{borderRadius.8}"
-        },
-        "hover": {
-          "background": "{color.primary-hover}",
-          "opacity": "{interaction.hover.opacity}"
-        },
-        "disabled": {
-          "background": "{color.disabled}",
-          "opacity": "{interaction.disabled.opacity}",
-          "cursor": "{interaction.disabled.cursor}"
+          "value": "button_danger_default",
+          "type": "string"
         }
-      },
-      "secondary": { ... },
-      "tertiary": { ... }
+      }
     },
-    "input": {
-      "default": { ... },
-      "focused": { ... },
-      "error": { ... },
-      "disabled": { ... }
-    },
-    "card": { ... },
-    "notification": { ... }
+    "card": {
+      "interactive": {
+        "hover": {
+          "value": "composition",
+          "type": "string"
+        }
+      }
+    }
   }
 }
 ```
@@ -504,21 +487,20 @@ Compact (Mobile):
 #### 🎯 Why Added?
 
 **Before:** Components had ad-hoc specifications  
-**After:** Every component follows same token structure
+**After:** Component tokens defined in centralized location
 
 **Pattern:**
 ```
-component → type (button, input, card)
-         → variant (primary, secondary, tertiary)
+component → type (button, card, input)
+         → variant (primary, danger, interactive)
          → state (default, hover, active, disabled, error)
-         → property (background, color, padding, etc.)
 ```
 
 #### ✅ Benefits
-- **Consistency:** All buttons look/behave the same
+- **Consistency:** Component tokens defined in one place
 - **Discoverability:** Component tokens visible in Token Studio
 - **Scaling:** Add new variants without breaking existing ones
-- **Testing:** Each component state testable independently
+- **Maintainability:** Update component tokens in one location
 
 ---
 
@@ -588,16 +570,16 @@ Tokens are organized in **layers**, with each layer building on previous ones. U
 
 ```
 LAYER 1: _Base/Value.json (PRIMITIVES)
-   ↓ Provides raw values
-LAYER 2: 01_Brand/Default.json (BRAND DECISIONS)
-   ↓ Aliases primitives with business logic
-LAYER 3: 02_Global.json (DESIGN SYSTEM)
-   ↓ Composite tokens, cross-cutting concerns
-LAYER 4: 02_Semantics/Light.json & Dark.json (THEME OVERRIDES)
-   ↓ Theme-specific remapping
-LAYER 5: 03_Responsive/Compact.json & Spacious.json (DENSITY VARIANTS)
-   ↓ Responsive adaptations
-LAYER 6: 06_Components/*.json (COMPONENT SPECS)
+   ↓ Provides raw values (colors, spacing, typography, motion)
+LAYER 2: 01_Brand/Default.json, Performance.json, Luxury.json (BRAND DECISIONS)
+   ↓ Brand-specific overrides (colors, typography, spacing)
+LAYER 3: Typography Compositions (in _Base/Value.json)
+   ↓ Typography compositions (heading-80, body-100, etc.)
+LAYER 4: 03_Themes/Day.json & Night.json (THEME OVERRIDES)
+   ↓ Theme-specific remapping (Day/Night modes)
+LAYER 5: 04_Motion/Animations.json & 05_Interactions/States.json
+   ↓ Motion and interaction tokens
+LAYER 6: 07_Components/Compositions.json (COMPONENT SPECS)
    ↓ Component-specific compositions
 ```
 
@@ -607,12 +589,12 @@ LAYER 6: 06_Components/*.json (COMPONENT SPECS)
 
 | Layer | File | Purpose | Key Point |
 |-------|------|---------|-----------|
-| 1 | `_Base/Value.json` | Raw primitives (colors, spacing, fonts) | Foundation - never edited by most |
-| 2 | `01_Brand/Default.json` | Brand meanings (swappable!) | Can swap entire file for different brand |
-| 3 | `02_Global.json` | Design system (typography, motion, a11y) | Cross-cutting UI logic |
-| 4 | `02_Semantics/Light.json & Dark.json` | Theme remapping | Switches on light/dark toggle |
-| 5 | `03_Responsive/Compact.json & Spacious.json` | Density modes | Adapts to device/viewport |
-| 6 | `06_Components/*.json` | Component specs | Component-specific compositions |
+| 1 | `_Base/Value.json` | Raw primitives (colors, spacing, fonts, typography) | Foundation - never edited by most |
+| 2 | `01_Brand/Default.json`, `Performance.json`, `Luxury.json` | Brand meanings (swappable!) | Can swap entire file for different brand |
+| 3 | Typography in `_Base/Value.json` | Typography compositions | Typography system with brand overrides |
+| 4 | `03_Themes/Day.json & Night.json` | Theme remapping | Switches on Day/Night toggle |
+| 5 | `04_Motion/Animations.json` & `05_Interactions/States.json` | Motion and interactions | Animation and state tokens |
+| 6 | `07_Components/Compositions.json` | Component specs | Component-specific compositions |
 
 ---
 
@@ -626,48 +608,43 @@ When a component references a token, the system resolves it **layer by layer**:
 Designer specs: "button primary hover"
 
 RESOLUTION:
-1. Check: 06_Components/Buttons.json
-   button.primary.hover.background = ?
+1. Check: 07_Components/Compositions.json
+   component.button.primary.hover = ?
    
-2. Find: "{color.primary-hover}"
+2. Find: "{color.brandPrimary.primary}"
    → Go to Layer 2
 
 3. Check: 01_Brand/Default.json
-   color.primary-hover = ?
+   color.brandPrimary.primary = ?
    
-4. Find: "{colors.Brand.150}"
-   → Go to Layer 1
-
-5. Check: _Base/Value.json
-   colors.Brand.150 = "#1243f5"
+4. Find: "#335fff" (direct value)
    
-6. RESULT: button primary hover = #1243f5
+5. RESULT: button primary hover = #335fff
 
 Visual: Blue hover state applied ✓
 ```
 
-#### Example: Typography Display on Dark Theme
+#### Example: Typography Heading on Night Theme
 
 ```
-Designer specs: "display-xxlarge text on dark theme"
+Designer specs: "heading-80 text on night theme"
 
 RESOLUTION:
-1. Check: 02_Global.json
-   typography.display-xxlarge.color = ?
+1. Check: _Base/Value.json (Typography compositions)
+   Typography.heading-80.fontFamily = ?
    
-2. Find: "{color.on-primary}"
-   → Go to Layer 4
-
-3. Check: 02_Semantics/Dark.json (dark theme active)
-   color.on-primary = ?
+2. Find: "{fontFamily.hmi}"
+   → Check brand override in Layer 2
    
-4. Find: "{colors.Neutral.95}"
-   → Go to Layer 1
-
-5. Check: _Base/Value.json
-   colors.Neutral.95 = "#f3f3f7"
+3. Check: 01_Brand/Luxury.json (if Luxury brand)
+   fontFamily.hmi = "serif" (Luxury override)
    
-6. RESULT: Text color on dark theme = light gray #f3f3f7 ✓
+4. Check: 03_Themes/Night.json (night theme active)
+   color.text.primary = ?
+   
+5. Find: Theme-appropriate text color
+   
+6. RESULT: Heading uses serif font (Luxury) with night theme text color ✓
 ```
 
 ---
@@ -677,16 +654,15 @@ RESOLUTION:
 ```
 _Base/Value.json (Layer 1)
     ↑ Referenced by
-    ├─→ 01_Brand/Default.json (Layer 2)
+    ├─→ 01_Brand/Default.json, Performance.json, Luxury.json (Layer 2)
     │       ↑ Referenced by
-    │       ├─→ 02_Global.json (Layer 3)
-    │       ├─→ 02_Semantics/Light.json (Layer 4)
-    │       ├─→ 02_Semantics/Dark.json (Layer 4)
-    │       └─→ 06_Components/*.json (Layer 6)
+    │       ├─→ 03_Themes/Day.json (Layer 4)
+    │       ├─→ 03_Themes/Night.json (Layer 4)
+    │       └─→ 07_Components/Compositions.json (Layer 6)
     │
-    ├─→ 04_Motion/Animations.json (Layer 3-ish)
+    ├─→ 04_Motion/Animations.json (Layer 5)
     │
-    └─→ 05_Interactions/States.json (Layer 3-ish)
+    └─→ 05_Interactions/States.json (Layer 5)
 ```
 
 **Key Rules:**
@@ -702,18 +678,18 @@ _Base/Value.json (Layer 1)
 | Layer | File | Purpose | Frequency of Edits | Who | What If Broken |
 |-------|------|---------|---|---|---|
 | 1 | `_Base/Value.json` | Primitives | Rarely | Design Systems | All colors/spacing broken |
-| 2 | `01_Brand/Default.json` | Brand semantics | Quarterly | Lead | All brand colors wrong |
-| 3 | `02_Global.json` | Design system (typography + spacing) | Monthly | Lead | Typography/spacing/motion broken |
-| 4 | `02_Semantics/*.json` | Themes | Rarely | Lead | Theme switching broken |
-| 5 | `03_Responsive/*.json` | Responsive | Rarely | Lead | Mobile/tablet layouts broken |
-| 6 | `06_Components/*.json` | Components | Frequently | Component owners | Specific components wrong |
+| 2 | `01_Brand/*.json` | Brand semantics | Quarterly | Lead | All brand colors wrong |
+| 3 | Typography in `_Base/Value.json` | Typography compositions | Monthly | Lead | Typography broken |
+| 4 | `03_Themes/*.json` | Themes | Rarely | Lead | Theme switching broken |
+| 5 | `04_Motion/*.json` & `05_Interactions/*.json` | Motion & interactions | Rarely | Lead | Animations/states broken |
+| 6 | `07_Components/*.json` | Components | Frequently | Component owners | Specific components wrong |
 
 ---
 
 ### Architecture FAQs
 
-**Q: Why can't I put brand colors in 02_Global.json?**  
-A: 02_Global.json is shared across all brands. Brand colors go in Layer 2 (01_Brand/Default.json), which is completely swappable for different brands.
+**Q: Why can't I put brand colors in _Base/Value.json?**  
+A: _Base/Value.json contains primitives shared across all brands. Brand colors go in Layer 2 (01_Brand/Default.json, Performance.json, Luxury.json), which are completely swappable for different brands.
 
 **Q: Can I create a new layer?**  
 A: No. All tokens fit into these 6 layers. If something doesn't fit, it likely belongs in a different layer or needs restructuring.
@@ -730,10 +706,10 @@ A: Run the token transformer script. It flags unresolved references (broken toke
 **Step 1: Update Figma Token Studio (5 min)**
 ```
 1. Open Figma Token Studio plugin
-2. Go to Settings → Token Set Order
-3. Select: New/02_Global.json (replace Current/global.json)
+2. Go to Settings → Sync with repository
+3. Pull latest tokens from Tokens/ directory
 4. Perform find/replace: AppliedBlue → BrandPrimary
-5. Sync & test (light/dark theme switching)
+5. Sync & test (Day/Night theme switching)
 ```
 
 **Step 2: Update Components (10 min)**
@@ -752,8 +728,8 @@ A: Run the token transformer script. It flags unresolved references (broken toke
 
 **Step 1: Update Token Files (5 min)**
 ```bash
-# Pull latest token files from New/ directory
-# Replace Current/ files with New/ files
+# Pull latest token files from Tokens/ directory
+# Tokens are now directly in Tokens/ (moved from Tokens/New/)
 # Verify import paths
 ```
 
@@ -798,20 +774,20 @@ Week 2: Production (Friday)
 **Daily Workflow:**
 ```
 1. Open Token Studio in Figma
-2. Reference 02_Global.json for:
-   - Typography (display-xxlarge, body-medium, label-small, etc.)
+2. Reference _Base/Value.json for:
+   - Typography compositions (heading-80, body-100, etc.)
    - Spacing (spacing-4, spacing-8, spacing-16, etc.)
-3. Use 02_Semantics/Light.json or Dark.json for theme
+3. Use 03_Themes/Day.json or Night.json for theme
 4. Reference 05_Interactions/States.json for component states
 5. Build designs using tokens (not hardcoded values)
 ```
 
 **Adding New Tokens:**
 ```
-1. Identify if it's: primitive, brand, semantic, component, or state
-2. Add to appropriate file (_Base, Brand, global, 02_Semantics, etc.)
+1. Identify if it's: primitive, brand, theme, component, or state
+2. Add to appropriate file (_Base, 01_Brand, 03_Themes, 07_Components, etc.)
 3. Commit to git
-4. Regenerate in development pipeline
+4. Run: python3 _Scripts/token_transformer_full_coverage.py . --modes
 5. Announce to team
 ```
 
@@ -828,20 +804,20 @@ Week 2: Production (Friday)
 
 **Daily Workflow:**
 ```
-1. Import token files: New/_Base/Value.json, etc.
-2. Reference generated code: Color.kt, Spacing.kt, Motion.kt
-3. Use component tokens: Button.primary.default, Input.error, etc.
+1. Use generated tokens from _TransformedTokens/xml/{brand}_{theme}/
+2. Reference generated XML: colors.xml, dimens.xml, typography.xml
+3. Use component tokens from components.xml
 4. Apply state tokens: hover, active, disabled, loading
-5. Apply motion tokens: Duration.standard, Easing.default
+5. Apply motion tokens from animations.xml
 ```
 
 **Adding New Components:**
 ```
-1. Create New/06_Components/YourComponent.json
+1. Create Tokens/07_Components/Compositions.json entry
 2. Define: default, hover, active, focus, disabled, error, loading states
-3. Reference existing tokens (_Base, Brand, global)
+3. Reference existing tokens (_Base, Brand, Themes)
 4. Commit to git
-5. Regenerate outputs
+5. Run: python3 _Scripts/token_transformer_full_coverage.py . --modes
 6. Announce to team
 ```
 
@@ -965,7 +941,7 @@ A: Phase 2 will add component-specific tokens. Phase 3 will expand color scales 
 
 | Document | Purpose | Audience | Time |
 |----------|---------|----------|------|
-| **This file (CLIENT_HANDOFF.md)** | Changes & migration | Everyone | 20-30 min |
+| **This file (MIGRATION_GUIDE.md)** | Changes & migration | Everyone | 20-30 min |
 | [00_START_HERE.md](./00_START_HERE.md) | Navigation & overview | Everyone | 5 min |
 | [DESIGN_WORKFLOW.md](./02_Workflows/DESIGN_WORKFLOW.md) | Designer setup | Designers | 30 min |
 | [DEV_WORKFLOW.md](./02_Workflows/DEV_WORKFLOW.md) | Developer setup | Developers | 30 min |
@@ -976,9 +952,9 @@ A: Phase 2 will add component-specific tokens. Phase 3 will expand color scales 
 ---
 
 **Version:** 1.0 — Production Ready  
-**Date:** November 12, 2025  
-**Last Updated:** November 12, 2025  
-**Status:** ✅ Ready for Client Handoff  
+**Date:** November 2025  
+**Last Updated:** November 2025  
+**Status:** ✅ Updated to match current token structure  
 **Questions?** See FAQ section above or contact Design Systems Lead
 
 ---

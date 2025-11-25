@@ -1,0 +1,271 @@
+# VehicleOS Design Token System - Cursor Rules
+
+## 🎯 Core Principles
+
+**ALWAYS use design tokens. NEVER use hardcoded values.**
+
+This project uses a comprehensive design token system with 6-layer architecture supporting 3 brands (Default, Performance, Luxury) × 2 themes (Day, Night) = 6 combinations.
+
+---
+
+## 🚫 NEVER Do This
+
+- ❌ Hardcode colors: `#335fff`, `Color(0xFF335FFF)`, `rgb(51, 95, 255)`
+- ❌ Hardcode spacing: `16dp`, `24px`, `padding="16"`
+- ❌ Hardcode typography: `fontSize="20sp"`, `fontFamily="sans-serif"`
+- ❌ Hardcode border radius: `cornerRadius="8dp"`
+- ❌ Use local color/spacing constants instead of token references
+
+---
+
+## ✅ ALWAYS Do This
+
+- ✅ Use token references: `@color/color_brand_primary_primary`, `@dimen/spacing_24`
+- ✅ Check for Figma MCP designs when user provides Figma links
+- ✅ Extract design tokens from Figma designs via MCP
+- ✅ Reference token files in `_TransformedTokens/xml/{brand}_{theme}/`
+- ✅ Verify generated code uses tokens, not hardcoded values
+- ✅ Support all 6 brand/theme combinations
+
+---
+
+## 🎨 Design Token System Structure
+
+### Token File Locations
+
+**Source tokens (JSON):**
+- `Tokens/New/_Base/Value.json` - Base primitives
+- `Tokens/New/01_Brand/{Brand}.json` - Brand overrides (Default, Performance, Luxury)
+- `Tokens/New/03_Themes/{Theme}.json` - Theme mappings (Day, Night)
+- `Tokens/New/04_Motion/Animations.json` - Motion tokens
+- `Tokens/New/05_Interactions/States.json` - Interaction states
+- `Tokens/New/07_Components/Compositions.json` - Component compositions
+
+**Generated tokens (platform-specific):**
+- `_TransformedTokens/xml/{brand}_{theme}/` - Android XML resources
+  - `colors.xml` - Color tokens
+  - `dimens.xml` - Spacing, font sizes, line heights
+  - `typography.xml` - Typography tokens
+  - `radius.xml` - Border radius tokens
+  - `animations.xml` - Animation tokens
+  - `interactions.xml` - Interaction state tokens
+
+### Available Brand/Theme Combinations
+
+- `default_day`, `default_night`
+- `performance_day`, `performance_night`
+- `luxury_day`, `luxury_night`
+
+---
+
+## 🔍 When Working with Figma Designs
+
+### Step 1: Check for Figma MCP
+
+When user provides a Figma link or mentions Figma:
+1. **Use Figma MCP tools** to extract design context
+2. **Extract design tokens** from the Figma design
+3. **Identify spacing, typography, colors** used in the design
+4. **Map Figma tokens to our token system**
+
+### Step 2: Generate Token-Based Code
+
+**For Android XML layouts:**
+```xml
+<!-- ✅ CORRECT: Use token references -->
+<TextView
+    android:textColor="@color/color_brand_primary_primary"
+    android:textSize="@dimen/font_size_24"
+    android:padding="@dimen/spacing_16"
+    android:fontFamily="@string/typography_heading_80_font_family" />
+
+<!-- ❌ WRONG: Hardcoded values -->
+<TextView
+    android:textColor="#335fff"
+    android:textSize="24sp"
+    android:padding="16dp"
+    android:fontFamily="sans-serif" />
+```
+
+**For Kotlin/Compose:**
+```kotlin
+// ✅ CORRECT: Use token references
+Text(
+    text = "Hello",
+    color = colorResource(R.color.color_brand_primary_primary),
+    fontSize = dimensionResource(R.dimen.font_size_24).value.sp,
+    modifier = Modifier.padding(dimensionResource(R.dimen.spacing_16))
+)
+
+// ❌ WRONG: Hardcoded values
+Text(
+    text = "Hello",
+    color = Color(0xFF335FFF),
+    fontSize = 24.sp,
+    modifier = Modifier.padding(16.dp)
+)
+```
+
+### Step 3: Verify Token Usage
+
+After generating code:
+1. **Check all colors** use `@color/color_*` references
+2. **Check all spacing** use `@dimen/spacing_*` or `@dimen/font_size_*`
+3. **Check typography** uses `@string/typography_*` and `@dimen/line_height_*`
+4. **Check border radius** uses `@dimen/spacing_*` or `@dimen/border_radius_*`
+5. **Ensure no hex codes** or hardcoded dp/sp values
+
+---
+
+## 📋 Token Naming Conventions
+
+### Colors
+- Pattern: `color_{category}_{name}_{modifier}`
+- Examples:
+  - `color_brand_primary_primary`
+  - `color_surface_primary`
+  - `color_text_primary`
+  - `color_functional_warning`
+
+### Spacing
+- Pattern: `spacing_{value}` or `spacing_{name}`
+- Examples:
+  - `spacing_4`, `spacing_8`, `spacing_16`, `spacing_24`
+  - Use spacing tokens for padding, margins, gaps
+
+### Typography
+- Font sizes: `font_size_{value}` (e.g., `font_size_24`, `font_size_36`)
+- Line heights: `line_height_{value}` (e.g., `line_height_32`, `line_height_48`)
+- Font families: `typography_{composition}_font_family` (e.g., `typography_heading_80_font_family`)
+- Letter spacing: `typography_{composition}_letter_spacing`
+
+### Border Radius
+- Pattern: `spacing_{value}` (for radius using spacing tokens)
+- Examples: `spacing_4`, `spacing_8`, `spacing_16`
+
+---
+
+## 🎯 Figma MCP Workflow
+
+### When User Provides Figma Link
+
+1. **Extract design context** using Figma MCP:
+   ```
+   Use @Figma [URL] to extract:
+   - Colors used in the design
+   - Spacing values (padding, margins, gaps)
+   - Typography (font sizes, line heights, font families)
+   - Border radius values
+   - Component structure
+   ```
+
+2. **Map to token system:**
+   - Match Figma colors to `color_*` tokens
+   - Match Figma spacing to `spacing_*` tokens
+   - Match Figma typography to `typography_*` and `font_size_*` tokens
+   - Match Figma border radius to `spacing_*` tokens
+
+3. **Generate code:**
+   - Use token references, not extracted raw values
+   - Ensure code works with all 6 brand/theme combinations
+   - Verify no hardcoded values remain
+
+### Example Prompt Pattern
+
+When user asks to build from Figma:
+```
+I'll extract the design from Figma and generate code using our design tokens.
+I'll use:
+- @color/color_* for all colors
+- @dimen/spacing_* for spacing
+- @dimen/font_size_* and @string/typography_* for typography
+- @dimen/spacing_* for border radius
+
+This ensures the code works with all brand/theme combinations.
+```
+
+---
+
+## 🔧 Token Generation & Sync
+
+### Token Generation
+
+Tokens are generated using:
+```bash
+python3 _Scripts/token_transformer_full_coverage.py . --modes
+```
+
+This generates all 6 brand/theme combinations in `_TransformedTokens/xml/`.
+
+### Token Swapping (Demo App)
+
+For the VehicleComponentsDemo app:
+```bash
+cd VehicleComponentsDemo
+./swap-tokens.sh {brand}_{theme}
+```
+
+This syncs tokens from `_TransformedTokens/xml/{brand}_{theme}/` to `app/src/main/res/values/`.
+
+---
+
+## 📚 Reference Documentation
+
+- **Design Workflow:** `_Docs/02_Workflows/DESIGN_WORKFLOW.md`
+- **Developer Workflow:** `_Docs/02_Workflows/DEV_WORKFLOW.md`
+- **Figma MCP Guide:** `_Docs/02_Workflows/FIGMA_MCP_WORKFLOW.md`
+- **Technical Reference:** `_Docs/01_Guides/TECHNICAL_REFERENCE.md`
+- **Main README:** `README.md`
+
+---
+
+## ✅ Code Review Checklist
+
+Before finalizing generated code, verify:
+
+- [ ] All colors use `@color/color_*` references (no hex codes)
+- [ ] All spacing uses `@dimen/spacing_*` (no hardcoded dp values)
+- [ ] All typography uses `@dimen/font_size_*`, `@dimen/line_height_*`, `@string/typography_*`
+- [ ] All border radius uses `@dimen/spacing_*` or `@dimen/border_radius_*`
+- [ ] Code works with all 6 brand/theme combinations
+- [ ] Figma design tokens were extracted and mapped correctly
+- [ ] No hardcoded values remain in the code
+
+---
+
+## 🎨 Example: VehicleComponentsDemo
+
+The `VehicleComponentsDemo` app is a reference implementation:
+- Location: `VehicleComponentsDemo/app/src/main/res/layout/activity_main.xml`
+- Uses tokens from `_TransformedTokens/xml/{brand}_{theme}/`
+- Supports all 6 brand/theme combinations
+- No hardcoded values
+
+**Study this file as a reference** when generating similar layouts.
+
+---
+
+## 🚨 Common Mistakes to Avoid
+
+1. **Don't extract raw values from Figma** - Always map to tokens
+2. **Don't assume token names** - Check `_TransformedTokens/xml/{brand}_{theme}/` for actual names
+3. **Don't use platform-specific constants** - Use token references
+4. **Don't skip token verification** - Always check generated code
+5. **Don't hardcode brand-specific values** - Use tokens that work across all brands
+
+---
+
+## 💡 Best Practices
+
+1. **Always check for Figma designs** when user mentions Figma
+2. **Use Figma MCP to extract design context** before generating code
+3. **Map Figma values to token system** instead of using raw values
+4. **Verify token references exist** in `_TransformedTokens/xml/`
+5. **Test with multiple brand/theme combinations** when possible
+6. **Reference VehicleComponentsDemo** as an example
+7. **Ask clarifying questions** if token mapping is unclear
+
+---
+
+**Remember:** The goal is to generate code that automatically adapts to different brands and themes through the token system, not hardcoded values that break when tokens change.
+

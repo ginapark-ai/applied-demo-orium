@@ -30,6 +30,24 @@
 
 ---
 
+## Current System Setup
+
+**Brands:** 3 (Default, Performance, Luxury)  
+**Themes:** 2 (Day, Night)  
+**Combinations:** 6 total (default_day, default_night, performance_day, performance_night, luxury_day, luxury_night)
+
+**Token File Structure:**
+- `_Base/Value.json` — Base primitives and defaults
+- `01_Brand/Default.json`, `Performance.json`, `Luxury.json` — Brand-specific overrides
+- `03_Themes/Day.json`, `Night.json` — Theme-specific mappings
+- `04_Motion/Animations.json` — Motion tokens
+- `05_Interactions/States.json` — Interaction state tokens
+- `07_Components/Compositions.json` — Component composition tokens
+
+**Developer Scripts:**
+- `token_transformer_full_coverage.py` — Generates all 6 brand/theme combinations automatically
+- `swap-tokens.sh` — Swaps tokens in the demo app with one command
+
 ## The Pipeline: What Happens When You Save
 
 ```
@@ -37,16 +55,20 @@ You update color in Figma
          ↓
 Token Studio plugin captures change
          ↓
-You export JSON
+You push to GitHub
          ↓
 Dev team pulls updated token files
          ↓
-Their build system regenerates code
+Dev runs: python3 _Scripts/token_transformer_full_coverage.py . --modes
          ↓
-All platforms (Android, Web, Flutter) update
+All 6 brand/theme combinations generated automatically
+         ↓
+Dev tests with: ./swap-tokens.sh {brand}_{theme}
+         ↓
+All platforms (Android XML, Kotlin, CSS) update
 ```
 
-**No hand-off meetings needed.** No "did you update the design spec?" No manual color specs.
+**No hand-off meetings needed.** No "did you update the design spec?" No manual color specs. The transformation script handles all platform outputs automatically.
 
 ---
 
@@ -90,12 +112,15 @@ All platforms (Android, Web, Flutter) update
    - Token Studio will sync with the shared token repository
 
 2. **Expected token sets appear automatically:**
-   - `global` (primitives)
-   - `_Base/Value` (default brand)
-   - `01_Brand/Value` (your brand overrides)
-   - `02_Semantics/Light` (light theme)
-   - `02_Semantics/Dark` (dark theme)
-   - `03_Responsive/Mode 1` (optional)
+   - `_Base/Value` (primitives and base values)
+   - `01_Brand/Default` (default brand tokens)
+   - `01_Brand/Performance` (performance brand tokens)
+   - `01_Brand/Luxury` (luxury brand tokens)
+   - `03_Themes/Day` (day theme tokens)
+   - `03_Themes/Night` (night theme tokens)
+   - `04_Motion/Animations` (motion tokens)
+   - `05_Interactions/States` (interaction state tokens)
+   - `07_Components/Compositions` (component composition tokens)
 
 **Option B: Manual Upload (For one-off projects)**
 
@@ -113,15 +138,34 @@ All platforms (Android, Web, Flutter) update
 
 **Important:** Token Studio won't let you delete tokens even if unused. This is intentional — it keeps the system stable. Leave unused tokens in place.
 
-### Step 4: Create Themes
+### Step 4: Create Brand/Theme Modes
+
+The system supports **3 brands** × **2 themes** = **6 combinations**. Set up all modes in Token Studio:
 
 1. **Click Themes** in Token Studio
-2. **New theme:** "Light Mode"
-   - Enable: `global`, `_Base/Value`, `01_Brand/Value`, `02_Semantics/Light`
-3. **New theme:** "Dark Mode"
-   - Enable: `global`, `_Base/Value`, `01_Brand/Value`, `02_Semantics/Dark`
+2. **Create 6 themes** (one for each brand/theme combination):
 
-Now you can toggle Light ↔ Dark in Token Studio and see components update in Figma.
+   **Default Brand:**
+   - Theme: "Default Day"
+     - Enable: `_Base/Value`, `01_Brand/Default`, `03_Themes/Day`
+   - Theme: "Default Night"
+     - Enable: `_Base/Value`, `01_Brand/Default`, `03_Themes/Night`
+
+   **Performance Brand:**
+   - Theme: "Performance Day"
+     - Enable: `_Base/Value`, `01_Brand/Performance`, `03_Themes/Day`
+   - Theme: "Performance Night"
+     - Enable: `_Base/Value`, `01_Brand/Performance`, `03_Themes/Night`
+
+   **Luxury Brand:**
+   - Theme: "Luxury Day"
+     - Enable: `_Base/Value`, `01_Brand/Luxury`, `03_Themes/Day`
+   - Theme: "Luxury Night"
+     - Enable: `_Base/Value`, `01_Brand/Luxury`, `03_Themes/Night`
+
+3. **Toggle between themes** in Token Studio to see how components update across brands and themes
+
+**Why this matters:** Developers can swap between any of these 6 combinations with a single command. Your Figma components should work across all modes.
 
 ### Step 5: Syncing to GitHub (Team Workflow)
 
@@ -138,6 +182,12 @@ After you've updated tokens:
 
 **Pull updates from dev:**
 - If dev made changes to tokens, click **Pull** in Token Studio to get the latest
+
+**Note for designers:** After you push token changes, developers will:
+1. Pull your changes from GitHub
+2. Run the token transformation script (`token_transformer_full_coverage.py`) to generate platform-specific files
+3. Use the `swap-tokens.sh` script to test different brand/theme combinations in the demo app
+4. Your changes automatically flow to Android XML, Kotlin, and CSS outputs
 
 ---
 
@@ -197,6 +247,16 @@ When developers consume this component, they don't hardcode colors. They use tok
 
 ---
 
+## 🤖 AI-Assisted Development with Figma MCP
+
+**Want to use Cursor AI to generate code from your Figma designs?** Use the Figma MCP Server to automatically extract design tokens and generate code that adheres to your design system.
+
+👉 **[See the complete Figma MCP Workflow Guide →](FIGMA_MCP_WORKFLOW.md)**
+
+The **VehicleComponentsDemo** app was built using this workflow — see it as a real example of AI-assisted development with design tokens.
+
+---
+
 ## Creating a New Brand
 
 ### Scenario: Client "BrandName" Needs Custom Tokens
@@ -205,124 +265,150 @@ When developers consume this component, they don't hardcode colors. They use tok
 
 In your token files, create:
 ```
-01_Brand/BrandName/Value.json
+Tokens/01_Brand/BrandName.json
 ```
 
 **Step 2: Override what's different**
 
 ```json
 {
-  "VOS": {
-    "color": {
-      "brand": {
-        "primary": { "value": "#FF6B35" },  // Client's brand color
-        "secondary": { "value": "#004E89" } // Client's accent
-      },
-      "type": {
-        "fontFamily": {
-          "primary": { "value": "Client Sans" }  // Client's font
-        }
-      }
+  "color": {
+    "brandPrimary": {
+      "primary": { "value": "#FF6B35", "type": "color" },
+      "secondary": { "value": "#004E89", "type": "color" }
     }
+  },
+  "Typography": {
+    "fontFamily": {
+      "primary": { "value": "Client Sans", "type": "fontFamily" }
+    }
+  },
+  "Spacing": {
+    // Only override spacing values that differ from base
+    "spacing-16": { "value": 20, "type": "spacing" }
   }
 }
 ```
 
 **Step 3: Leave everything else as-is**
 
-Don't recreate all tokens. Only override what's different. Everything else inherits from `_Base/Value`.
+Don't recreate all tokens. Only override what's different. Everything else inherits from `_Base/Value.json`.
 
 **Step 4: In Token Studio**
 
-- Add new theme: "BrandName Light"
-- Enable: `global`, `_Base/Value`, `01_Brand/BrandName`, `02_Semantics/Light`
+- Add new themes: "BrandName Day" and "BrandName Night"
+- Enable: `_Base/Value`, `01_Brand/BrandName`, `03_Themes/Day` (or `Night`)
 - Your components auto-update to client colors
 
-**Step 5: Export**
+**Step 5: Push to GitHub**
 
-- Click Tokens panel → Export
-- Share JSON with dev team
-- They run build; client's branding is live
+- Push your changes to the token repository
+- Dev team runs: `python3 _Scripts/token_transformer_full_coverage.py . --modes`
+- This generates `brandname_day` and `brandname_night` outputs automatically
+- Devs can test with: `cd VehicleComponentsDemo && ./swap-tokens.sh brandname_day`
+- Client's branding is live across all platforms
 
 ---
 
-## Light/Dark Theme Pattern
+## Day/Night Theme Pattern
 
 ### Same Tokens, Different Values
 
-**Light Mode (02_Semantics/Light.json):**
+**Day Theme (03_Themes/Day.json):**
 ```json
 {
-  "surface-primary-enabled": { "value": "{VOS.color.active.active-light-primary}" },
-  "on-surface-enabled": { "value": "{VOS.color.blacks.black-90}" }
+  "color": {
+    "surface": {
+      "primary": { "value": "{color.active.active-light-primary}" },
+      "secondary": { "value": "{color.whites.white-100-primary}" }
+    },
+    "text": {
+      "primary": { "value": "{color.blacks.black-90-default}" }
+    }
+  }
 }
 ```
 
-**Dark Mode (02_Semantics/Dark.json):**
+**Night Theme (03_Themes/Night.json):**
 ```json
 {
-  "surface-primary-enabled": { "value": "{VOS.color.active.active-dark-primary}" },
-  "on-surface-enabled": { "value": "{VOS.color.whites.white-90}" }
+  "color": {
+    "surface": {
+      "primary": { "value": "{color.active.active-dark-primary}" },
+      "secondary": { "value": "{color.blacks.black-90-default}" }
+    },
+    "text": {
+      "primary": { "value": "{color.whites.white-90-default}" }
+    }
+  }
 }
 ```
 
-**Same token name.** Different values. Developers toggle theme once, everything updates.
+**Same token name.** Different values. Developers swap theme with one command, everything updates.
+
+**Important:** Always verify that Day themes use day-optimized colors (light surfaces, dark text) and Night themes use night-optimized colors (dark surfaces, light text). The theme files handle this mapping automatically.
 
 ### In Figma
 
-1. Create component with light-mode colors
-2. In Token Studio → Switch to "Dark Mode" theme
+1. Create component with day-mode colors
+2. In Token Studio → Switch to "[Brand] Night" theme
 3. Component colors auto-swap (if you used tokens)
-4. Add dark variant to component
+4. Test both day and night variants
 
-Now one component supports both themes.
+Now one component supports both themes across all brands.
 
 ---
 
 ## Token Structure You'll Use
 
-### global.json — The Foundation
+### _Base/Value.json — The Foundation
 
 ```
-Primitives (raw values)
-├─ color-primitives (White, Black, BrandPrimary, Red, Green, Blue, etc.)
-├─ spacing (4pt grid: spacing-4, spacing-8, spacing-16...)
-├─ elevation (shadow levels: elevation-0 through elevation-4)
-├─ radius (corner options: radius-small, medium, large, xlarge)
-├─ fontSize (scale: 0-10, from 12px to 180px)
-└─ lineHeight (reading comfort: multiple options)
+Base primitives and defaults
+├─ color.active (active-light-primary, active-dark-primary, etc.)
+├─ color.whites (white color scale: white-100-primary, white-90-default, etc.)
+├─ color.blacks (black color scale: black-90-default, black-80, etc.)
+├─ color.red, color.green, color.blue (functional color scales)
+├─ Spacing (4pt grid: spacing-4, spacing-8, spacing-16, spacing-24, etc.)
+├─ Typography (fontSize, lineHeight, fontWeight scales)
+├─ Border radius (border-radius-4, border-radius-8, etc.)
+└─ Other base design tokens
 ```
 
-**You use:** All of it. These are your design tokens.
+**You use:** All of it. These are the base primitives that all brands inherit from. Brands only override what's different.
 
-### _Base/Value.json — Brand Defaults
-
-```
-Brand aliases
-├─ VOS.color.brand (primary, secondary)
-├─ VOS.color.active (light/dark variants for active states)
-├─ VOS.color.background (light/dark backgrounds)
-├─ VOS.color.status (success, warning, error, caution, info)
-├─ VOS.type (font families, weights)
-└─ VOS.radius (component rounding)
-```
-
-**You use:** When building components. These are semantic (meaning-based) tokens.
-
-### 02_Semantics/Light.json & Dark.json — UI Roles
+### 01_Brand/Default.json, Performance.json, Luxury.json — Brand Overrides
 
 ```
-Component states
-├─ surface-primary-enabled (main button state)
-├─ surface-primary-pressed (tapped/hovered)
-├─ surface-primary-disabled (inactive)
-├─ on-surface-enabled (text on surface)
-├─ divider (line colors)
-├─ background-page (page backgrounds)
-└─ etc.
+Brand-specific values
+├─ color.brandPrimary (primary, secondary, tertiary, accent)
+├─ color.functional (warning, caution, positive, safety, informative)
+├─ Typography (font families, font sizes, line heights, letter spacing)
+├─ Spacing (brand-specific spacing overrides)
+└─ Other brand-specific tokens
 ```
 
-**You use:** Most frequently. These are "ready to use" tokens.
+**You use:** When creating brand-specific components. Each brand file only contains what's different from the base.
+
+**Current brands:**
+- **Default:** Vibrant blue primary (#335fff), sans-serif typography
+- **Performance:** Orange/red primary (#FF6B35), sans-serif typography
+- **Luxury:** Purple primary (#8B5CF6), serif typography (Georgia)
+
+### 03_Themes/Day.json & Night.json — Theme Overrides
+
+```
+Theme-specific mappings
+├─ Surface colors (primary, secondary, tertiary)
+├─ Text colors (primary, secondary, disabled)
+├─ Background colors
+├─ Border colors
+└─ Theme-specific functional color mappings
+```
+
+**You use:** These ensure day themes use day colors and night themes use night colors. The theme files remap brand tokens to appropriate light/dark variants.
+
+**Important:** Day themes should use light-optimized colors, Night themes use dark-optimized colors. Always test both when designing components.
 
 ---
 
@@ -371,30 +457,40 @@ Copy-paste this pattern for consistency.
 
 ### When You're Done Designing
 
-1. **In Token Studio → Export Tokens**
-2. **Copy the JSON**
-3. **Create PR** to your token repo with updated files:
-   - `global.json`
-   - `_Base/Value.json`
-   - `01_Brand/[YourBrand]/Value.json` (if needed)
-   - `02_Semantics/Light.json`
-   - `02_Semantics/Dark.json`
+1. **In Token Studio → Push to GitHub**
+   - Click **Push** button in Token Studio
+   - Add commit message describing your changes
+   - Select branch and push
+
+2. **Updated files will be pushed:**
+   - `_Base/Value.json` (if you changed base values)
+   - `01_Brand/Default.json`, `Performance.json`, or `Luxury.json` (if you changed brand tokens)
+   - `03_Themes/Day.json` or `Night.json` (if you changed theme mappings)
+   - `04_Motion/Animations.json` (if you changed motion tokens)
+   - `05_Interactions/States.json` (if you changed interaction states)
+   - `07_Components/Compositions.json` (if you changed component tokens)
    - `$themes.json` (auto-generated, includes Figma variable mappings)
 
-4. **Write commit message:**
-   ```
-   feat(tokens): update BrandName theme for Q1 refresh
-   
-   - Updated primary color to #FF6B35
-   - Updated font family to Client Sans
-   - Added new functional colors for alerts
-   ```
+3. **Create Pull Request** (if pushing to a branch)
+   - Write clear commit message:
+     ```
+     feat(tokens): update Luxury brand colors for Q1 refresh
+     
+     - Updated primary color to #8B5CF6
+     - Updated font family to Georgia (serif)
+     - Adjusted spacing tokens for luxury brand
+     ```
 
-5. **Dev team gets notification** → They build → Everyone's synced
+4. **Dev team workflow:**
+   - Devs pull your changes
+   - They run: `python3 _Scripts/token_transformer_full_coverage.py . --modes`
+   - This generates all 6 brand/theme combinations automatically
+   - They can test with: `cd VehicleComponentsDemo && ./swap-tokens.sh luxury_day`
+   - All platforms (Android XML, Kotlin, CSS) update automatically
 
 ### No Manual Specs Needed
 
-Devs don't need you to write color specs or send Figma file links. They consume the JSON directly.
+Devs don't need you to write color specs or send Figma file links. They consume the JSON directly and the transformation script handles all platform outputs.
 
 ---
 
@@ -479,10 +575,12 @@ Devs don't need you to write color specs or send Figma file links. They consume 
 
 **Tuesday PM:** Dev reviews, merges PR, runs:
 ```bash
-npx style-dictionary build
+python3 _Scripts/token_transformer_full_coverage.py . --modes
+cd VehicleComponentsDemo
+./swap-tokens.sh IPSY-Spring_day
 ```
 
-**Wednesday:** QA tests staging environment (all colors updated automatically)
+**Wednesday:** QA tests staging environment (all colors updated automatically across all 6 brand/theme combinations)
 
 **Thursday:** Deploy to production
 
@@ -530,7 +628,7 @@ A: Re-assign your components to new token name. Same color, new name. Takes 5 mi
 A: Yes, but keep the naming pattern: `category-modifier-state`. Devs will thank you.
 
 **Q: What if I want to use a color not in tokens?**  
-A: Add it to `global.json` as a new primitive, then create a semantic token for it. Don't use raw hex values.
+A: Add it to `_Base/Value.json` as a new primitive, then create a semantic token for it in the appropriate brand or theme file. Don't use raw hex values.
 
 **Q: Can I delete tokens I'm not using?**  
 A: No — Token Studio prevents token deletion to keep the system stable. Unused tokens won't break anything. Just leave them.

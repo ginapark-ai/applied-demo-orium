@@ -1,67 +1,118 @@
 # How to Swap Brand and Theme in VehicleComponentsDemo
 
-## Current Setup
+## 🚀 One-Command Solution
 
-The app currently uses tokens from `default_night` (Default brand, Night theme).
+The easiest way to swap brands and themes is using the `swap-tokens.sh` script. This single command handles everything automatically.
 
-## Available Options
+### Quick Start
 
-You have **6 brand/theme combinations** available in `_TransformedTokens/xml/`:
+```bash
+cd VehicleComponentsDemo
+./swap-tokens.sh <brand_theme>
+```
+
+### Available Brand/Theme Combinations
+
+You have **6 brand/theme combinations** available:
 - `default_day` - Default brand, Day theme
-- `default_night` - Default brand, Night theme (currently used)
+- `default_night` - Default brand, Night theme
 - `performance_day` - Performance brand, Day theme
 - `performance_night` - Performance brand, Night theme
 - `luxury_day` - Luxury brand, Day theme
 - `luxury_night` - Luxury brand, Night theme
 
-## Method 1: Quick Swap (Copy Files)
+### Examples
 
-**To change brand/theme:**
+**Switch to Luxury Night:**
+```bash
+./swap-tokens.sh luxury_night
+```
 
-1. Copy the desired token files from `_TransformedTokens/xml/{brand}_{theme}/` to `app/src/main/res/values/`
+**Switch to Performance Day:**
+```bash
+./swap-tokens.sh performance_day
+```
 
-   Example to switch to `luxury_day`:
-   ```bash
-   cp _TransformedTokens/xml/luxury_day/*.xml VehicleComponentsDemo/app/src/main/res/values/
-   ```
+**Switch to Default Day:**
+```bash
+./swap-tokens.sh default_day
+```
 
-2. Sync Gradle and rebuild
+## What the Script Does
 
-## Method 2: Using Android Resource Qualifiers (Recommended)
+The `swap-tokens.sh` script automatically:
 
-This allows automatic theme switching based on system dark mode.
+1. ✅ **Generates/regenerates all tokens** for all 6 brand/theme combinations
+   - Runs `python3 _Scripts/token_transformer_full_coverage.py . --modes`
+   - Ensures you always have the latest tokens
 
-### Setup Steps:
+2. ✅ **Updates `gradle.properties`** with your selected brand/theme
+   - Sets `token.brandTheme={brand}_{theme}`
+   - Used by Gradle build system for automatic syncing
 
-1. **Create theme-specific resource folders:**
-   - `app/src/main/res/values/` - for Day theme (default)
-   - `app/src/main/res/values-night/` - for Night theme
+3. ✅ **Syncs token files** from `_TransformedTokens/xml/{brand}_{theme}/` to `app/src/main/res/values/`
+   - Copies all XML token files (colors.xml, dimens.xml, typography.xml, etc.)
+   - Overwrites existing files with new brand/theme tokens
 
-2. **Copy token files:**
-   - Day theme: Copy from `_TransformedTokens/xml/{brand}_day/` to `values/`
-   - Night theme: Copy from `_TransformedTokens/xml/{brand}_night/` to `values-night/`
+4. ✅ **Ready to build** - No manual steps needed!
 
-3. **The app will automatically switch** between Day/Night based on system settings!
+## After Running the Script
 
-### To Change Brand:
+1. **Sync Gradle** in Android Studio (if using IDE)
+   - Click "Sync Project with Gradle Files" or use `./gradlew build`
 
-Copy the appropriate brand files to both `values/` and `values-night/` folders.
+2. **Rebuild the project**
+   - The app will now use the selected brand/theme tokens
 
-## Method 3: Runtime Theme Switching (Advanced)
+3. **Run the app** to see the new brand/theme applied
 
-For runtime brand/theme switching, you would need to:
-1. Create a ThemeManager class
-2. Load resources dynamically
-3. Apply theme programmatically
+## Current Brand/Theme
 
-This is more complex but allows users to switch themes in-app.
+The current brand/theme is stored in `gradle.properties`:
+```properties
+token.brandTheme={brand}_{theme}
+```
 
-## Quick Reference
+You can check the current setting by viewing `gradle.properties` or running:
+```bash
+grep token.brandTheme gradle.properties
+```
 
-**Current Brand/Theme:** Default + Night (in `app/src/main/res/values/`)
+## Automatic Token Syncing
 
-**To switch to:**
-- **Luxury + Night:** `cp _TransformedTokens/xml/luxury_night/*.xml app/src/main/res/values/`
-- **Performance + Day:** `cp _TransformedTokens/xml/performance_day/*.xml app/src/main/res/values/`
-- **Default + Day:** `cp _TransformedTokens/xml/default_day/*.xml app/src/main/res/values/`
+The app's `build.gradle.kts` includes a `syncTokens` task that automatically runs before each build. This ensures:
+- Tokens are always synced from `_TransformedTokens/xml/{brand}_{theme}/`
+- The correct brand/theme is used based on `gradle.properties`
+- No manual file copying is needed
+
+## Manual Method (Advanced)
+
+If you need to manually copy files (not recommended):
+
+```bash
+# From project root
+cp _TransformedTokens/xml/{brand}_{theme}/*.xml VehicleComponentsDemo/app/src/main/res/values/
+```
+
+**Note:** This method doesn't update `gradle.properties` and won't work with the automatic sync task. Use `swap-tokens.sh` instead.
+
+## Troubleshooting
+
+**Q: Script says "Token directory not found"**  
+A: The token generation step may have failed. Check that `_TransformedTokens/xml/{brand}_{theme}/` exists. Try running the transformer manually: `python3 _Scripts/token_transformer_full_coverage.py . --modes`
+
+**Q: Tokens don't update after running script**  
+A: Make sure to sync Gradle and rebuild. The script copies files, but Android Studio needs to sync to see changes.
+
+**Q: Wrong brand/theme showing in app**  
+A: Check `gradle.properties` to verify `token.brandTheme` is set correctly. Also ensure you've synced Gradle after running the script.
+
+**Q: Can I use this in my own app?**  
+A: Yes! Copy the `swap-tokens.sh` script and the `syncTokens` Gradle task from `build.gradle.kts` to your project. See `VehicleComponentsDemo/README.md` for integration details.
+
+## Related Documentation
+
+- **[Main README](../../README.md)** - Project overview and quick start
+- **[Developer Workflow](../../_Docs/02_Workflows/DEV_WORKFLOW.md)** - Complete developer guide
+- **[Figma MCP Workflow](../../_Docs/02_Workflows/FIGMA_MCP_WORKFLOW.md)** - AI-assisted development guide
 

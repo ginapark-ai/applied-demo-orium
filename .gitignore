@@ -61,7 +61,7 @@ _TransformedTokens/xml/*.xml
 # ============================================================================
 !_Docs/
 !Tokens/Current/
-!Tokens/New/
+!Tokens/
 !_Scripts/
 !.gitignore
 !README.md

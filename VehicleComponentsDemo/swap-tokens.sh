@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script to swap brand and theme tokens in VehicleComponentsDemo
-# Updates gradle.properties and triggers automatic token sync via Gradle
+# Generates tokens and updates gradle.properties, then syncs tokens
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -14,6 +14,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 TOKENS_DIR="$PROJECT_ROOT/_TransformedTokens/xml"
 GRADLE_PROPERTIES="$SCRIPT_DIR/gradle.properties"
+TOKEN_TRANSFORMER="$PROJECT_ROOT/_Scripts/token_transformer_full_coverage.py"
 
 # Available options
 echo -e "${YELLOW}Available Brand/Theme Combinations:${NC}"
@@ -35,9 +36,10 @@ fi
 BRAND_THEME=$1
 SOURCE_DIR="$TOKENS_DIR/$BRAND_THEME"
 
-# Validate selection
-if [ ! -d "$SOURCE_DIR" ]; then
-    echo -e "${RED}Error: Token directory not found: $SOURCE_DIR${NC}"
+# Validate brand/theme format
+VALID_THEMES="default_day default_night performance_day performance_night luxury_day luxury_night"
+if [[ ! " $VALID_THEMES " =~ " $BRAND_THEME " ]]; then
+    echo -e "${RED}Error: Invalid brand/theme combination: $BRAND_THEME${NC}"
     echo "Available options: default_day, default_night, performance_day, performance_night, luxury_day, luxury_night"
     exit 1
 fi
@@ -51,7 +53,30 @@ fi
 echo -e "${YELLOW}Swapping tokens to: $BRAND_THEME${NC}"
 echo ""
 
-# Update gradle.properties
+# Step 1: Generate/regenerate tokens (always regenerate to ensure latest tokens)
+echo -e "${BLUE}Generating tokens...${NC}"
+if [ ! -f "$TOKEN_TRANSFORMER" ]; then
+    echo -e "${RED}Error: Token transformer script not found: $TOKEN_TRANSFORMER${NC}"
+    exit 1
+fi
+
+cd "$PROJECT_ROOT"
+python3 "$TOKEN_TRANSFORMER" . --modes
+if [ $? -ne 0 ]; then
+    echo -e "${RED}✗ Error generating tokens${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ Tokens generated${NC}"
+echo ""
+
+# Validate that token directory exists after generation
+if [ ! -d "$SOURCE_DIR" ]; then
+    echo -e "${RED}Error: Token directory not found after generation: $SOURCE_DIR${NC}"
+    echo "This may indicate an error during token generation."
+    exit 1
+fi
+
+# Step 2: Update gradle.properties
 echo -e "${BLUE}Updating gradle.properties...${NC}"
 if grep -q "^token.brandTheme=" "$GRADLE_PROPERTIES"; then
     # Update existing property

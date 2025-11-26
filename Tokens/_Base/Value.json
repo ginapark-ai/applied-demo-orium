@@ -900,66 +900,6 @@
       "type": "letterSpacing"
     }
   },
-  "motion": {
-    "duration": {
-      "short": {
-        "value": 100,
-        "type": "duration"
-      },
-      "medium": {
-        "value": 200,
-        "type": "duration"
-      },
-      "long": {
-        "value": 300,
-        "type": "duration"
-      }
-    },
-    "easing": {
-      "standard": {
-        "value": "cubic-bezier(0.4, 0.0, 0.2, 1)",
-        "type": "cubicBezier"
-      },
-      "decelerate": {
-        "value": "cubic-bezier(0.0, 0.0, 0.2, 1)",
-        "type": "cubicBezier"
-      },
-      "accelerate": {
-        "value": "cubic-bezier(0.4, 0.0, 1, 1)",
-        "type": "cubicBezier"
-      }
-    }
-  },
-  "platforms": {
-    "android": {
-      "densityBucket": {
-        "value": "xxhdpi",
-        "type": "string"
-      },
-      "fontScale": {
-        "value": 1,
-        "type": "number"
-      },
-      "motionMultiplier": {
-        "value": 1,
-        "type": "number"
-      }
-    },
-    "qnx": {
-      "densityBucket": {
-        "value": "standard",
-        "type": "string"
-      },
-      "fontScale": {
-        "value": 0.95,
-        "type": "number"
-      },
-      "motionMultiplier": {
-        "value": 0.8,
-        "type": "number"
-      }
-    }
-  },
   "fontFamily": {
     "hmi": {
       "value": "tt commons pro",

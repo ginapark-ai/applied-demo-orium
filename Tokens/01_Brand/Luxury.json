@@ -422,5 +422,22 @@
       "type": "dimension",
       "description": "Extra extra large spacing - spacious scale (2x base)"
     }
+  },
+  "borderRadius": {
+    "xs": {
+      "value": 8,
+      "type": "dimension",
+      "description": "Extra small border radius - spacious scale (2x base)"
+    },
+    "sm": {
+      "value": 16,
+      "type": "dimension",
+      "description": "Small border radius - spacious scale (2x base)"
+    },
+    "md": {
+      "value": 32,
+      "type": "dimension",
+      "description": "Medium border radius - spacious scale (2x base)"
+    }
   }
 }

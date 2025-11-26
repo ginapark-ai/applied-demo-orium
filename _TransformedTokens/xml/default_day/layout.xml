@@ -7,10 +7,4 @@
     <dimen name="layout_breakpoints_expanded">840dp</dimen>
     <dimen name="layout_breakpoints_medium">600dp</dimen>
 
-    <!-- Spacing -->
-    <dimen name="layout_spacing_base">8dp</dimen>
-    <dimen name="layout_spacing_dense">4dp</dimen>
-    <dimen name="layout_spacing_relaxed">16dp</dimen>
-    <dimen name="layout_spacing_touch_target">48dp</dimen>
-
 </resources>

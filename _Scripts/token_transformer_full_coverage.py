@@ -40,6 +40,7 @@ Output Structure (with --modes):
 import json
 import re
 import sys
+import ast
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
@@ -191,6 +192,28 @@ class FullCoverageTransformer:
         elif isinstance(current, (str, int, float, bool)):
             return current
 
+        return None
+
+    def _parse_dict_like_string(self, value_str: str) -> Optional[Dict[str, Any]]:
+        """Try to parse a dict-like string (e.g., "{'key': 'value'}") into a dict."""
+        if not isinstance(value_str, str):
+            return None
+        
+        # Check if it looks like a dict string
+        value_str = value_str.strip()
+        if not (value_str.startswith("{") and value_str.endswith("}")):
+            return None
+        
+        try:
+            # Try to parse as Python dict using ast.literal_eval (safe)
+            parsed = ast.literal_eval(value_str)
+            if isinstance(parsed, dict):
+                return parsed
+        except (ValueError, SyntaxError):
+            # If literal_eval fails, try a simpler regex-based approach
+            # This handles cases like "{'fill': '{color.red.red-30}'}"
+            pass
+        
         return None
 
     # ===== EXTRACTION METHODS =====
@@ -1460,6 +1483,288 @@ object TokenProvider {
             if isinstance(component_def, dict):
                 for variant_name, variant_def in sorted(component_def.items()):
                     if isinstance(variant_def, dict):
+                        # Check if this is a nested variant structure (e.g., button.danger.active)
+                        # If variant_def has "value" and "type" keys, it's a composition token at this level
+                        # Otherwise, it might be a nested variant (e.g., danger -> active, hover, default)
+                        if "value" in variant_def and "type" in variant_def:
+                            # This is a composition token at this level (e.g., card.default)
+                            # Process it directly by treating variant_def as if it has a "value" property
+                            property_name = "value"
+                            property_def = variant_def["value"]  # Get the actual value dict
+                            # Now process it as a composition token
+                            if isinstance(property_def, dict):
+                                safe_component_name = self._to_snake_case(component_name)
+                                safe_variant_name = self._to_snake_case(variant_name)
+                                # Extract each property from the composition
+                                for prop_key, prop_value in sorted(property_def.items()):
+                                    safe_prop_key = self._to_snake_case(prop_key)
+                                    
+                                    # Handle nested dicts (e.g., indicator: {size: "...", fill: "..."})
+                                    if isinstance(prop_value, dict):
+                                        # Extract nested properties
+                                        for nested_key, nested_value in sorted(prop_value.items()):
+                                            safe_nested_key = self._to_snake_case(nested_key)
+                                            full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_nested_key}"
+                                            
+                                            # Resolve the nested value if it's a reference
+                                            if isinstance(nested_value, str):
+                                                resolved_value = self.resolve_reference(nested_value)
+                                            else:
+                                                resolved_value = nested_value
+                                            
+                                            # Determine resource type
+                                            nested_key_lower = nested_key.lower()
+                                            is_nested_color = any(x in nested_key_lower for x in ["color", "fill", "background"])
+                                            is_nested_dimen = any(x in nested_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            
+                                            # Try to convert to number
+                                            nested_numeric = None
+                                            if isinstance(resolved_value, str):
+                                                try:
+                                                    # Remove units for numeric conversion
+                                                    numeric_str = resolved_value.replace("px", "").replace("dp", "").strip()
+                                                    if '.' in numeric_str:
+                                                        nested_numeric = float(numeric_str)
+                                                    else:
+                                                        nested_numeric = int(numeric_str)
+                                                except ValueError:
+                                                    pass
+                                            
+                                            # Generate XML resource
+                                            if isinstance(resolved_value, str):
+                                                if resolved_value.startswith("#"):
+                                                    xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                                elif nested_numeric is not None and is_nested_dimen:
+                                                    xml += f'    <dimen name="{full_name}">{nested_numeric}dp</dimen>\n'
+                                                elif resolved_value.startswith("@"):
+                                                    xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                                else:
+                                                    xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                            elif isinstance(resolved_value, (int, float)):
+                                                if is_nested_dimen:
+                                                    xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                            else:
+                                                xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                        continue  # Skip processing this prop_key as a simple value
+                                    
+                                    # Handle simple (non-dict) properties
+                                    full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}"
+                                    
+                                    # Resolve the property value if it's a reference
+                                    if isinstance(prop_value, str):
+                                        resolved_value = self.resolve_reference(prop_value)
+                                    else:
+                                        resolved_value = prop_value
+                                    
+                                    # Determine resource type based on property name and value
+                                    prop_key_lower = prop_key.lower()
+                                    is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
+                                    is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
+                                    
+                                    # Try to convert string to number if it looks numeric
+                                    numeric_value = None
+                                    if isinstance(resolved_value, str):
+                                        try:
+                                            if '.' in resolved_value:
+                                                numeric_value = float(resolved_value)
+                                            else:
+                                                numeric_value = int(resolved_value)
+                                        except ValueError:
+                                            pass
+                                    
+                                    # Check if resolved_value is a dict-like string that needs parsing
+                                    parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
+                                    if parsed_dict:
+                                        # Extract properties from the parsed dict
+                                        for dict_key, dict_value in sorted(parsed_dict.items()):
+                                            safe_dict_key = self._to_snake_case(dict_key)
+                                            dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
+                                            
+                                            # Resolve the dict value if it's a reference
+                                            if isinstance(dict_value, str):
+                                                dict_resolved = self.resolve_reference(dict_value)
+                                            else:
+                                                dict_resolved = dict_value
+                                            
+                                            # Determine resource type
+                                            dict_key_lower = dict_key.lower()
+                                            is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            
+                                            # Try to convert to number
+                                            dict_numeric = None
+                                            if isinstance(dict_resolved, str):
+                                                try:
+                                                    if '.' in dict_resolved:
+                                                        dict_numeric = float(dict_resolved)
+                                                    else:
+                                                        dict_numeric = int(dict_resolved)
+                                                except ValueError:
+                                                    pass
+                                            
+                                            # Generate XML resource
+                                            if isinstance(dict_resolved, str):
+                                                if dict_resolved.startswith("#"):
+                                                    xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                                elif dict_numeric is not None and is_dict_dimen:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                                elif dict_resolved.startswith("@"):
+                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                else:
+                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                            elif isinstance(dict_resolved, (int, float)):
+                                                if is_dict_dimen:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                            else:
+                                                xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
+                                    # Generate appropriate XML resource based on value type and property name
+                                    elif isinstance(resolved_value, str):
+                                        if resolved_value.startswith("#"):
+                                            xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                        elif numeric_value is not None and is_dimen_prop:
+                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                        elif resolved_value.startswith("@"):
+                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                        else:
+                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                    elif isinstance(resolved_value, (int, float)):
+                                        if is_dimen_prop:
+                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                        elif is_color_prop:
+                                            xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
+                                        else:
+                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                    else:
+                                        xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                            continue  # Skip the nested variant processing for direct composition tokens
+                        else:
+                            # This is a nested variant structure, recurse into it
+                            for sub_variant_name, sub_variant_def in sorted(variant_def.items()):
+                                if isinstance(sub_variant_def, dict):
+                                    # Process sub-variant
+                                    for property_name, property_def in sorted(sub_variant_def.items()):
+                                        safe_component_name = self._to_snake_case(component_name)
+                                        safe_variant_name = self._to_snake_case(variant_name)
+                                        safe_sub_variant_name = self._to_snake_case(sub_variant_name)
+                                        safe_property_name = self._to_snake_case(property_name)
+                                        
+                                        # Skip type properties
+                                        if property_name.endswith("_type") or property_name == "type":
+                                            continue
+                                        
+                                        # Handle composition tokens: when property_name is "value" and property_def is a dict of properties
+                                        if property_name == "value" and isinstance(property_def, dict):
+                                            # Extract each property from the composition
+                                            for prop_key, prop_value in sorted(property_def.items()):
+                                                safe_prop_key = self._to_snake_case(prop_key)
+                                                
+                                                # Handle nested dicts (e.g., indicator: {size: "...", fill: "..."})
+                                                if isinstance(prop_value, dict):
+                                                    # Extract nested properties
+                                                    for nested_key, nested_value in sorted(prop_value.items()):
+                                                        safe_nested_key = self._to_snake_case(nested_key)
+                                                        full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_sub_variant_name}_{safe_prop_key}_{safe_nested_key}"
+                                                        
+                                                        # Resolve the nested value if it's a reference
+                                                        if isinstance(nested_value, str):
+                                                            resolved_value = self.resolve_reference(nested_value)
+                                                        else:
+                                                            resolved_value = nested_value
+                                                        
+                                                        # Determine resource type
+                                                        nested_key_lower = nested_key.lower()
+                                                        is_nested_color = any(x in nested_key_lower for x in ["color", "fill", "background"])
+                                                        is_nested_dimen = any(x in nested_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                                        
+                                                        # Try to convert to number (handle units like "px", "dp")
+                                                        nested_numeric = None
+                                                        if isinstance(resolved_value, str):
+                                                            try:
+                                                                # Remove units for numeric conversion
+                                                                numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                                                if numeric_str and '.' in numeric_str:
+                                                                    nested_numeric = float(numeric_str)
+                                                                elif numeric_str:
+                                                                    nested_numeric = int(numeric_str)
+                                                            except ValueError:
+                                                                pass
+                                                        
+                                                        # Generate XML resource
+                                                        if isinstance(resolved_value, str):
+                                                            if resolved_value.startswith("#"):
+                                                                xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                                            elif nested_numeric is not None and is_nested_dimen:
+                                                                xml += f'    <dimen name="{full_name}">{nested_numeric}dp</dimen>\n'
+                                                            elif resolved_value.startswith("@"):
+                                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                                            else:
+                                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                                        elif isinstance(resolved_value, (int, float)):
+                                                            if is_nested_dimen:
+                                                                xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                                            else:
+                                                                xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                                        else:
+                                                            xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                                    continue  # Skip processing this prop_key as a simple value
+                                                
+                                                # Handle simple (non-dict) properties
+                                                full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_sub_variant_name}_{safe_prop_key}"
+                                                
+                                                # Resolve the property value if it's a reference
+                                                if isinstance(prop_value, str):
+                                                    resolved_value = self.resolve_reference(prop_value)
+                                                else:
+                                                    resolved_value = prop_value
+                                                
+                                                # Determine resource type based on property name and value
+                                                prop_key_lower = prop_key.lower()
+                                                is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
+                                                is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
+                                                
+                                                # Try to convert string to number if it looks numeric
+                                                numeric_value = None
+                                                if isinstance(resolved_value, str):
+                                                    try:
+                                                        if '.' in resolved_value:
+                                                            numeric_value = float(resolved_value)
+                                                        else:
+                                                            numeric_value = int(resolved_value)
+                                                    except ValueError:
+                                                        pass
+                                                
+                                                # Check if resolved_value is a dict-like string that needs parsing
+                                                parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
+                                                if parsed_dict:
+                                                    # Extract properties from the parsed dict (handled below in main loop)
+                                                    pass
+                                                
+                                                # Generate appropriate XML resource based on value type and property name
+                                                if isinstance(resolved_value, str):
+                                                    if resolved_value.startswith("#"):
+                                                        xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                                    elif numeric_value is not None and is_dimen_prop:
+                                                        xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                                    elif resolved_value.startswith("@"):
+                                                        xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                                    else:
+                                                        xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                                elif isinstance(resolved_value, (int, float)):
+                                                    if is_dimen_prop:
+                                                        xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                                    elif is_color_prop:
+                                                        xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
+                                                    else:
+                                                        xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                            continue  # Skip the main loop for nested variants
+                        
+                        # Main loop for single-level variants
                         for property_name, property_def in sorted(variant_def.items()):
                             # Sanitize names: replace hyphens with underscores for valid Android resource names
                             safe_component_name = self._to_snake_case(component_name)
@@ -1477,56 +1782,183 @@ object TokenProvider {
                                 if property_def == f"{safe_component_name}_{safe_variant_name}" or property_def == f"{safe_component_name}_{safe_variant_name}_{safe_property_name}":
                                     continue
                             
-                            if isinstance(property_def, dict) and "value" in property_def:
+                            # Handle composition tokens: 
+                            # 1. When property_name is "value" and property_def is a dict of properties
+                            # 2. When property_def is a dict with "value" and "type" keys (nested variant like button.danger.active)
+                            if isinstance(property_def, dict) and "value" in property_def and isinstance(property_def["value"], dict):
+                                # Extract the actual value dict
+                                value_dict = property_def["value"]
+                                # Extract each property from the composition
+                                # e.g., card.default.value = {fill: "...", padding: "...", borderRadius: "..."}
+                                # or button.danger.active.value = {fill: "..."}
+                                for prop_key, prop_value in sorted(value_dict.items()):
+                                    safe_prop_key = self._to_snake_case(prop_key)
+                                    # For nested variants (like button.danger.active), include the variant name in the resource name
+                                    if property_name != "value":
+                                        # This is a nested variant (e.g., "active" in button.danger.active)
+                                        full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_property_name}_{safe_prop_key}"
+                                    else:
+                                        # This is a direct value property
+                                        full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}"
+                                    
+                                    # Resolve the property value if it's a reference
+                                    if isinstance(prop_value, str):
+                                        resolved_value = self.resolve_reference(prop_value)
+                                    else:
+                                        resolved_value = prop_value
+                                    
+                                    # Determine resource type based on property name and value
+                                    prop_key_lower = prop_key.lower()
+                                    is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
+                                    is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
+                                    
+                                    # Try to convert string to number if it looks numeric
+                                    numeric_value = None
+                                    if isinstance(resolved_value, str):
+                                        try:
+                                            # Try int first, then float
+                                            if '.' in resolved_value:
+                                                numeric_value = float(resolved_value)
+                                            else:
+                                                numeric_value = int(resolved_value)
+                                        except ValueError:
+                                            pass
+                                    
+                                    # Check if resolved_value is a dict-like string that needs parsing
+                                    parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
+                                    if parsed_dict:
+                                        # Extract properties from the parsed dict
+                                        for dict_key, dict_value in sorted(parsed_dict.items()):
+                                            safe_dict_key = self._to_snake_case(dict_key)
+                                            dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
+                                            
+                                            # Resolve the dict value if it's a reference
+                                            if isinstance(dict_value, str):
+                                                dict_resolved = self.resolve_reference(dict_value)
+                                            else:
+                                                dict_resolved = dict_value
+                                            
+                                            # Determine resource type
+                                            dict_key_lower = dict_key.lower()
+                                            is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            
+                                            # Try to convert to number
+                                            dict_numeric = None
+                                            if isinstance(dict_resolved, str):
+                                                try:
+                                                    if '.' in dict_resolved:
+                                                        dict_numeric = float(dict_resolved)
+                                                    else:
+                                                        dict_numeric = int(dict_resolved)
+                                                except ValueError:
+                                                    pass
+                                            
+                                            # Generate XML resource
+                                            if isinstance(dict_resolved, str):
+                                                if dict_resolved.startswith("#"):
+                                                    xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                                elif dict_numeric is not None and is_dict_dimen:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                                elif dict_resolved.startswith("@"):
+                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                else:
+                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                            elif isinstance(dict_resolved, (int, float)):
+                                                if is_dict_dimen:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                            else:
+                                                xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
+                                    # Generate appropriate XML resource based on value type and property name
+                                    elif isinstance(resolved_value, str):
+                                        if resolved_value.startswith("#"):
+                                            xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                        elif numeric_value is not None and is_dimen_prop:
+                                            # Numeric string for a dimension property
+                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                        elif resolved_value.startswith("@"):
+                                            # Reference to another resource - use as string for now
+                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                        else:
+                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                    elif isinstance(resolved_value, (int, float)):
+                                        if is_dimen_prop:
+                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                        elif is_color_prop:
+                                            # Assume it's a color value if it's a number for a color property
+                                            xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
+                                        else:
+                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                    else:
+                                        xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                            elif isinstance(property_def, dict) and "value" in property_def:
+                                # Handle nested structure where property_def has a "value" key
                                 value = property_def["value"]
                                 full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_property_name}"
                                 
-                                # Check for JSON-like strings BEFORE resolving (they're not valid Android resources)
-                                # These are composition tokens that contain JSON-like structures - not valid Android XML
-                                value_str = str(value) if value else ""
-                                is_json_like = False
-                                if isinstance(value, str) or (isinstance(value, (dict, list))):
-                                    # Convert to string for checking
-                                    if not isinstance(value, str):
-                                        value_str = str(value)
-                                    else:
-                                        value_str = value
-                                    
-                                    value_lower = value_str.lower()
-                                    # Check for JSON-like patterns
-                                    is_json_like = (
-                                        value_str.strip().startswith("{") or 
-                                        value_str.strip().startswith("'") or
-                                        ("{" in value_str and "'" in value_str and ":" in value_str) or  # {'key': 'value'}
-                                        ("':" in value_str and value_str.count("'") >= 2) or
-                                        ('{"' in value_str) or
-                                        ("'fill'" in value_lower) or
-                                        ("'fill':" in value_lower) or
-                                        ("'textcolor':" in value_lower) or
-                                        ("'padding':" in value_lower) or
-                                        ("'borderradius':" in value_lower) or
-                                        (value_str.count("'") >= 2 and ":" in value_str)  # Multiple quoted keys
-                                    )
-                                
-                                if is_json_like:
-                                    # Skip JSON-like component definitions - these are just identifiers, not needed in Android XML
-                                    # The resource name already identifies the component/variant
-                                    continue
-                                
-                                # Resolve value if it's a string with references (only if not JSON-like)
+                                # Resolve value if it's a string with references
                                 if isinstance(value, str):
                                     value = self.resolve_reference(value)
                                 
-                                # Double-check after resolution
-                                if isinstance(value, str) and (value.strip().startswith("{") or "'fill':" in value):
-                                    xml += f'    <string name="{full_name}">{safe_component_name}_{safe_variant_name}_{safe_property_name}</string>\n'
-                                    continue
-                                elif isinstance(value, str) and value.startswith("#"):
-                                    xml += f'    <color name="{full_name}">{value}</color>\n'
+                                # Check if value is a dict-like string that needs parsing
+                                parsed_dict = self._parse_dict_like_string(value) if isinstance(value, str) else None
+                                if parsed_dict:
+                                    # Extract properties from the parsed dict
+                                    for dict_key, dict_value in sorted(parsed_dict.items()):
+                                        safe_dict_key = self._to_snake_case(dict_key)
+                                        dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_property_name}_{safe_dict_key}"
+                                        
+                                        # Resolve the dict value if it's a reference
+                                        if isinstance(dict_value, str):
+                                            dict_resolved = self.resolve_reference(dict_value)
+                                        else:
+                                            dict_resolved = dict_value
+                                        
+                                        # Determine resource type
+                                        dict_key_lower = dict_key.lower()
+                                        is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                        is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                        
+                                        # Try to convert to number
+                                        dict_numeric = None
+                                        if isinstance(dict_resolved, str):
+                                            try:
+                                                if '.' in dict_resolved:
+                                                    dict_numeric = float(dict_resolved)
+                                                else:
+                                                    dict_numeric = int(dict_resolved)
+                                            except ValueError:
+                                                pass
+                                        
+                                        # Generate XML resource
+                                        if isinstance(dict_resolved, str):
+                                            if dict_resolved.startswith("#"):
+                                                xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                            elif dict_numeric is not None and is_dict_dimen:
+                                                xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                            elif dict_resolved.startswith("@"):
+                                                xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                            else:
+                                                xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                        elif isinstance(dict_resolved, (int, float)):
+                                            if is_dict_dimen:
+                                                xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                            else:
+                                                xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                        else:
+                                            xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
+                                # Generate appropriate XML resource
+                                elif isinstance(value, str):
+                                    if value.startswith("#"):
+                                        xml += f'    <color name="{full_name}">{value}</color>\n'
+                                    else:
+                                        xml += f'    <string name="{full_name}">{value}</string>\n'
                                 elif isinstance(value, (int, float)):
                                     xml += f'    <dimen name="{full_name}">{value}dp</dimen>\n'
                                 else:
-                                    xml += f'    <string name="{full_name}">{value}</string>\n'
+                                    xml += f'    <string name="{full_name}">{str(value)}</string>\n'
                             elif isinstance(property_def, str):
                                 # Direct string value without "value" key
                                 # Sanitize names: replace hyphens with underscores for valid Android resource names
@@ -1534,14 +1966,53 @@ object TokenProvider {
                                 safe_variant_name = self._to_snake_case(variant_name)
                                 safe_property_name = self._to_snake_case(property_name)
                                 full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_property_name}"
-                                # Skip JSON-like strings
-                                is_json_like = (property_def.strip().startswith("{") or 
-                                              property_def.strip().startswith("'") or
-                                              ("':" in property_def and "'" in property_def) or
-                                              ('{"' in property_def) or
-                                              ("{'fill'" in property_def))
-                                # Skip JSON-like strings and redundant identifier strings
-                                if is_json_like:
+                                # Check if property_def is a dict-like string that needs parsing
+                                parsed_dict = self._parse_dict_like_string(property_def)
+                                if parsed_dict:
+                                    # Extract properties from the parsed dict
+                                    for dict_key, dict_value in sorted(parsed_dict.items()):
+                                        safe_dict_key = self._to_snake_case(dict_key)
+                                        dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_property_name}_{safe_dict_key}"
+                                        
+                                        # Resolve the dict value if it's a reference
+                                        if isinstance(dict_value, str):
+                                            dict_resolved = self.resolve_reference(dict_value)
+                                        else:
+                                            dict_resolved = dict_value
+                                        
+                                        # Determine resource type
+                                        dict_key_lower = dict_key.lower()
+                                        is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                        is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                        
+                                        # Try to convert to number
+                                        dict_numeric = None
+                                        if isinstance(dict_resolved, str):
+                                            try:
+                                                if '.' in dict_resolved:
+                                                    dict_numeric = float(dict_resolved)
+                                                else:
+                                                    dict_numeric = int(dict_resolved)
+                                            except ValueError:
+                                                pass
+                                        
+                                        # Generate XML resource
+                                        if isinstance(dict_resolved, str):
+                                            if dict_resolved.startswith("#"):
+                                                xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                            elif dict_numeric is not None and is_dict_dimen:
+                                                xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                            elif dict_resolved.startswith("@"):
+                                                xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                            else:
+                                                xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                        elif isinstance(dict_resolved, (int, float)):
+                                            if is_dict_dimen:
+                                                xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                            else:
+                                                xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                        else:
+                                            xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
                                     continue
                                 # Only output if it's a meaningful string value (not just an identifier)
                                 # Skip if it's just repeating the component/variant name

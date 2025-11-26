@@ -171,7 +171,7 @@
         "borderColor": "{color.surface.secondary}",
         "borderWidth": "{borderWidth.1}",
         "borderRadius": "{borderRadius.8}",
-        "padding": "{spacing.16}",
+        "padding": "{spacing.md}",
         "boxShadow": "{elevation.1}"
       },
       "type": "composition"
@@ -180,7 +180,7 @@
       "value": {
         "fill": "{color.surface.primary}",
         "borderRadius": "{borderRadius.8}",
-        "padding": "{spacing.16}",
+        "padding": "{spacing.md}",
         "boxShadow": "{elevation.3}"
       },
       "type": "composition"
@@ -191,7 +191,7 @@
         "borderColor": "{color.surface.secondary}",
         "borderWidth": "{borderWidth.1}",
         "borderRadius": "{borderRadius.8}",
-        "padding": "{spacing.16}",
+        "padding": "{spacing.md}",
         "boxShadow": "{elevation.1}"
       },
       "type": "composition"
@@ -206,7 +206,7 @@
     },
     "compact": {
       "value": {
-        "padding": "{spacing.12}",
+        "padding": "{spacing.sm}",
         "borderRadius": "{borderRadius.4}",
         "borderColor": "{color.surface.secondary}",
         "borderWidth": "{borderWidth.1}"
@@ -215,28 +215,28 @@
     },
     "large": {
       "value": {
-        "padding": "{spacing.24}",
+        "padding": "{spacing.lg}",
         "borderRadius": "{borderRadius.16}"
       },
       "type": "composition"
     },
     "header": {
       "value": {
-        "padding": "{spacing.16}",
+        "padding": "{spacing.md}",
         "fill": "{color.surface.primary}"
       },
       "type": "composition"
     },
     "body": {
       "value": {
-        "padding": "{spacing.16}",
+        "padding": "{spacing.md}",
         "textColor": "{color.text.primary}"
       },
       "type": "composition"
     },
     "footer": {
       "value": {
-        "padding": "{spacing.16}",
+        "padding": "{spacing.md}",
         "fill": "{color.surface.secondary}"
       },
       "type": "composition"

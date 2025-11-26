@@ -914,24 +914,6 @@
         "value": 840,
         "type": "dimension"
       }
-    },
-    "spacing": {
-      "dense": {
-        "value": 4,
-        "type": "dimension"
-      },
-      "base": {
-        "value": 8,
-        "type": "dimension"
-      },
-      "relaxed": {
-        "value": 16,
-        "type": "dimension"
-      },
-      "touchTarget": {
-        "value": 48,
-        "type": "dimension"
-      }
     }
   },
   "motion": {

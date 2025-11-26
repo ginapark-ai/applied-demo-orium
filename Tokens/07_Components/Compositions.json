@@ -171,7 +171,7 @@
         "borderColor": "{color.surface.secondary}",
         "borderWidth": "{borderWidth.1}",
         "borderRadius": "{borderRadius.sm}",
-        "padding": "{spacing.md}",
+        "padding": "{spacing.lg}",
         "boxShadow": "{elevation.1}"
       },
       "type": "composition"
@@ -180,7 +180,7 @@
       "value": {
         "fill": "{color.surface.primary}",
         "borderRadius": "{borderRadius.sm}",
-        "padding": "{spacing.md}",
+        "padding": "{spacing.lg}",
         "boxShadow": "{elevation.3}"
       },
       "type": "composition"
@@ -191,7 +191,7 @@
         "borderColor": "{color.surface.secondary}",
         "borderWidth": "{borderWidth.1}",
         "borderRadius": "{borderRadius.sm}",
-        "padding": "{spacing.md}",
+        "padding": "{spacing.lg}",
         "boxShadow": "{elevation.1}"
       },
       "type": "composition"

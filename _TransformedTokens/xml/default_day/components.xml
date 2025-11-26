@@ -39,7 +39,7 @@
     <dimen name="component_card_default_box_shadow_x">0dp</dimen>
     <dimen name="component_card_default_box_shadow_y">2dp</dimen>
     <color name="component_card_default_fill">#FFFFFF</color>
-    <dimen name="component_card_default_padding">16dp</dimen>
+    <dimen name="component_card_default_padding">24dp</dimen>
     <color name="component_card_divider_border_color">#F5F5F5</color>
     <dimen name="component_card_divider_border_width">1dp</dimen>
     <dimen name="component_card_elevated_border_radius">8dp</dimen>
@@ -49,7 +49,7 @@
     <dimen name="component_card_elevated_box_shadow_x">0dp</dimen>
     <dimen name="component_card_elevated_box_shadow_y">8dp</dimen>
     <color name="component_card_elevated_fill">#FFFFFF</color>
-    <dimen name="component_card_elevated_padding">16dp</dimen>
+    <dimen name="component_card_elevated_padding">24dp</dimen>
     <color name="component_card_footer_fill">#F5F5F5</color>
     <dimen name="component_card_footer_padding">16dp</dimen>
     <color name="component_card_header_fill">#FFFFFF</color>
@@ -63,7 +63,7 @@
     <dimen name="component_card_interactive_box_shadow_x">0dp</dimen>
     <dimen name="component_card_interactive_box_shadow_y">2dp</dimen>
     <color name="component_card_interactive_fill">#FFFFFF</color>
-    <dimen name="component_card_interactive_padding">16dp</dimen>
+    <dimen name="component_card_interactive_padding">24dp</dimen>
     <color name="component_card_interactive_hover_border_color">#6383f8</color>
     <dimen name="component_card_interactive_hover_box_shadow_blur">8dp</dimen>
     <string name="component_card_interactive_hover_box_shadow_color">rgba(0, 0, 0, 0.15)</string>

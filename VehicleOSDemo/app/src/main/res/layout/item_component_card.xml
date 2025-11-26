@@ -21,6 +21,7 @@
             android:layout_height="@dimen/icon_size_large"
             android:src="@drawable/ic_revert"
             android:contentDescription="Revert icon"
+            android:layout_gravity="center_horizontal"
             android:layout_marginBottom="@dimen/spacing_md"
             android:tint="@color/color_text_primary" />
 
@@ -109,11 +110,12 @@
             <!-- Action Button - Using button component tokens -->
             <Button
                 android:id="@+id/actionButton"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="View Details"
                 android:textColor="@color/component_button_primary_default_text_color"
                 android:background="@drawable/button_primary_background"
+                android:layout_marginTop="@dimen/spacing_md"
                 android:paddingTop="@dimen/spacing_sm"
                 android:paddingBottom="@dimen/spacing_sm"
                 android:paddingStart="@dimen/spacing_md"

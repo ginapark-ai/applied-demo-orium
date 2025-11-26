@@ -1,12 +1,11 @@
 # Technical Reference — Architecture & Implementation
 
 **For:** Tech leads, architects, code reviewers  
-**Date:** November 14, 2025 | **Version:** 1.1 (Updated)  
-**Status:** Architecture ✅ Complete | Components ⚠️ In Progress (4/15)
+**Date:** November 14, 2025 | **Version:** 1.2 (Updated)  
+**Status:** Architecture ✅ Complete | Components ⚠️ In Progress (9/15)
 
 > **Active Directory:** `Tokens/` (Token files directly in Tokens folder)  
-> **Legacy:** `Tokens/Current/` (Previous structure - reference only)  
-> **Last Updated:** November 2025 after moving tokens from Tokens/New/ to Tokens/
+> **Last Updated:** November 2025 - Consolidated structure with 16 top-level categories and 23 Typography compositions
 
 ---
 
@@ -15,68 +14,67 @@
 ### Layered Token Structure
 
 ```
-Layer 1: PRIMITIVES (_Base/Value.json)
-├── Color scales (11 types: white, black, neutral, brand, functional, material accents, glass)
-├── Spacing scale (4pt grid: 2-64px, 41 values with half-steps)
-├── Elevation (5 levels with Material Design 3 shadows)
-├── Border radius (0, 4, 8, 16, 24px)
-├── Border width (0, 1px, 2px)
-├── Typography (fontSize: 12-180sp, lineHeight, fontWeight, letterSpacing)
-├── Motion (duration, easing, transitions)
-└── Platforms (Android, QNX platform-specific config)
+Layer 1: PRIMITIVES (_Base/Value.json) - 16 top-level categories
+├── color-primitives (color scales: white, black, neutral, brand, functional)
+├── spacing (4pt grid: 2-64px, 32+ values)
+├── fontSize (12-180sp, 21 sizes)
+├── lineHeight (16-116sp, 13 values)
+├── fontWeight (300-700, 5 weights)
+├── borderRadius (0, 4, 8, 16, 24px)
+├── borderWidth (0, 1px, 2px)
+├── elevation (5 levels with Material Design 3 shadows)
+├── textDecoration (none, underline, line-through)
+├── textCase (none, uppercase, lowercase, capitalize)
+├── letterSpacing (20+ values by category)
+├── layout (breakpoints and layout tokens)
+├── motion (duration, easing, transitions)
+├── platforms (Android, QNX platform-specific config)
+├── fontFamily (HMI, cluster font families)
+└── Typography (23 typography compositions: display-80, heading-80, body-100, etc.)
 
-Layer 2: GLOBAL CONSOLIDATION (02_Global.json)
-├── Master color definitions (color-primitives.*)
-├── Reference spacing scale
-└── Typography family definitions
+Layer 2: BRAND OVERRIDES (01_Brand/)
+├── Default.json (Blue primary theme - #335fff)
+├── Performance.json (Orange primary theme)
+└── Luxury.json (Purple primary theme with serif typography)
 
-Layer 3: BRAND THEMES (01_Brand/)
-├── Default.json (Applied Intuition blue theme)
-├── HighContrast.json (WCAG AAA accessibility variant)
-└── Minimal.json (Neutral gray minimal aesthetic)
+Layer 3: THEME MAPPINGS (03_Themes/)
+├── Day.json (Light theme - optimized for daytime use)
+│   ├── Surface colors (primary, secondary, tertiary)
+│   ├── Text colors (on-surface, on-primary)
+│   └── Background colors (WCAG AA compliant)
+└── Night.json (Dark theme - optimized for nighttime use)
+    └── Mirrored structure with dark-optimized colors
 
-Layer 4: SEMANTICS (02_Semantics/)
-├── Light.json (light theme semantic tokens)
-│   ├── onSurface colors (WCAG AA text colors)
-│   ├── Surface hierarchy (primary/secondary/tertiary/destructive)
-│   ├── Background colors (ui-primary, page)
-│   ├── Radius roles (component, container)
-│   └── Interaction states (hover, focus, disabled, error, success)
-└── Dark.json (dark theme semantic tokens - mirrored structure)
+Layer 4: MOTION & INTERACTIONS (04_Motion/ & 05_Interactions/)
+├── 04_Motion/Animations.json (15 tokens - motion timing & easing)
+│   ├── motion.duration.* (fast/standard/slow)
+│   ├── motion.easing.* (default/entrance/exit/smooth/sharp)
+│   └── motion.transition.* (pre-composed combinations)
+└── 05_Interactions/States.json (40+ tokens - all component states)
+    ├── hover, active, disabled, focus, loading, readonly
+    ├── error, success, warning, selected, dragging
+    └── Opacity + color delta + focus indicators
 
-Layer 5: RESPONSIVE & DENSITY (03_Responsive/)
-├── Compact.json (density mode 1 - tight spacing)
-│   ├── Typography adjustments per density
-│   ├── Line height adjustments
-│   └── Layout breakpoint variants
-└── Spacious.json (density mode 2 - comfortable spacing)
-
-Layer 6: INTERACTIONS & MOTION (05_Interactions/ & 04_Motion/)
-├── 05_Interactions/States.json (40+ tokens - all component states)
-│   ├── hover, active, disabled, focus, loading, readonly
-│   ├── error, success, warning, selected, dragging
-│   └── Opacity + color delta + focus indicators
-└── 04_Motion/Animations.json (15 tokens - motion timing & easing)
-    ├── motion.duration.* (fast/standard/slow)
-    ├── motion.easing.* (default/entrance/exit/smooth/sharp)
-    └── motion.transition.* (pre-composed combinations)
-
-Layer 7: COMPONENTS (07_Components/Compositions.json) ⚠️ PARTIAL
+Layer 5: COMPONENTS (07_Components/Compositions.json) ⚠️ PARTIAL
 ├── ✅ Button (Primary, Secondary, Tertiary, Danger + sizes/states)
 ├── ✅ Card (Default, Elevated, Interactive, Compact, Large)
 ├── ✅ Input (Text + states: hover, focus, disabled, error, success)
 ├── ✅ Notification (Success, Error, Warning, Info + badges, toast)
-├── ❌ MISSING: Checkbox, Radio, Toggle, Select, Textarea
-├── ❌ MISSING: Tabs, Breadcrumb, Navigation, Modal, Tooltip, Popover
-└── Current Coverage: 4/15 components (27%)
+├── ✅ Checkbox (Default, checked, hover, error, disabled states)
+├── ✅ Radio (Default, selected, hover, error, disabled states)
+├── ✅ Toggle (On/off states with thumb styling)
+├── ✅ Select (Closed, open, dropdown, error states)
+├── ✅ Modal (Container, backdrop, header, body, footer)
+├── ❌ MISSING: Textarea, Tabs, Breadcrumb, Navigation, Tooltip, Popover
+└── Current Coverage: 9/15 components (60%)
 
-Layer 8: FIGMA INTEGRATION ($themes.json + $metadata.json)
+Layer 6: FIGMA INTEGRATION ($themes.json + $metadata.json)
 ├── Theme mode configuration
 ├── Token set mapping & activation
 └── Figma variable IDs (for sync)
 ```
 
-**Flow:** Primitives → Global → Brand → Semantics → Responsive → Interactions → Components → Figma
+**Flow:** Primitives → Brand → Themes → Motion/Interactions → Components → Figma
 
 ---
 
@@ -87,53 +85,38 @@ Layer 8: FIGMA INTEGRATION ($themes.json + $metadata.json)
 ```
 Tokens/ (Token files directly in Tokens folder)
 ├── _Base/
-│   └── Value.json (986 lines - Core primitives)
-│       ├── color.* (color scales: 11 types + opacity variants)
-│       ├── spacing.* (4pt grid with half-steps: 2-64px, 41 values)
-│       ├── fontSize.* (12-180sp, 12 sizes for display & body)
-│       ├── lineHeight.* (16-116sp, 13 values)
-│       ├── fontWeight.* (300-700, 5 weights: light, regular, medium, semi-bold, bold)
-│       ├── borderRadius.* (0, 4, 8, 16, 24px semantic radii)
-│       ├── borderWidth.* (0, 1px, 2px for borders)
-│       ├── elevation.* (5 Material Design 3 shadow levels)
-│       ├── textCase.* (text transformation tokens)
-│       ├── letterSpacing.* (20+ fine-grained values by category)
-│       ├── textDecoration.* (none, underline, line-through)
-│       ├── layout.* (breakpoints: compact/medium/expanded)
-│       └── platforms.* (Android, QNX platform-specific config)
+│   └── Value.json (1,308 lines - Core primitives with 16 top-level categories)
+│       ├── color-primitives (color scales: white, black, neutral, brand, functional)
+│       ├── spacing (4pt grid: 2-64px, 32+ values)
+│       ├── fontSize (12-180sp, 21 sizes)
+│       ├── lineHeight (16-116sp, 13 values)
+│       ├── fontWeight (300-700, 5 weights: light, regular, medium, semi-bold, bold)
+│       ├── borderRadius (0, 4, 8, 16, 24px semantic radii)
+│       ├── borderWidth (0, 1px, 2px for borders)
+│       ├── elevation (5 Material Design 3 shadow levels)
+│       ├── textCase (text transformation tokens)
+│       ├── letterSpacing (20+ fine-grained values by category)
+│       ├── textDecoration (none, underline, line-through)
+│       ├── layout (breakpoints: compact/medium/expanded)
+│       ├── motion (duration, easing, transitions)
+│       ├── platforms (Android, QNX platform-specific config)
+│       ├── fontFamily (HMI, cluster font families)
+│       └── Typography (23 typography compositions: display-80, heading-80, body-100, etc.)
 │
-├── 01_Brand/ (Brand Theme Variants)
-│   ├── Default.json (Applied Intuition blue theme - primary)
-│   ├── HighContrast.json (WCAG AAA accessibility variant)
-│   └── Minimal.json (Neutral gray minimal aesthetic)
+├── 01_Brand/ (Brand Overrides)
+│   ├── Default.json (Blue primary theme - #335fff)
+│   ├── Performance.json (Orange primary theme)
+│   └── Luxury.json (Purple primary theme with serif typography)
 │
-├── 02_Global.json (Consolidated Primitives Reference)
-│   ├── typography.* (display-xxlarge through body-small scales)
-│   │   └── Includes fontFamily, fontWeight, lineHeight, fontSize, letterSpacing
-│   ├── color-primitives.* (master color definitions)
-│   └── spacing.* (reference scale)
+├── 02_Spacing/ (Reserved for global spacing - currently spacing in Layer 1)
 │
-├── 02_Semantics/ (Light/Dark Theme Tokens)
-│   ├── Light.json (light theme semantic mappings)
-│   │   ├── typography.* (complete type scale with semantics)
-│   │   ├── onSurface.* (WCAG AA text colors for different surfaces)
-│   │   ├── background.* (ui-primary, page, secondary backgrounds)
-│   │   ├── surface.* (primary/secondary/tertiary/destructive surfaces)
-│   │   ├── radius.* (component, container, interaction roles)
-│   │   └── interaction.* (state tokens: hover, focus, disabled, etc.)
-│   │
-│   └── Dark.json (dark theme semantic tokens - mirrored structure)
-│
-├── 03_Responsive/ (Density Modes)
-│   ├── Compact.json (density mode 1 - tight spacing, compact feel)
-│   │   ├── typography.* (adjusted font sizes & line heights)
-│   │   ├── spacing.* (compact variants if needed)
-│   │   └── layout.* (breakpoint variants for compact mode)
-│   │
-│   └── Spacious.json (density mode 2 - spacious feeling)
-│       ├── typography.* (adjusted font sizes & line heights)
-│       ├── spacing.* (spacious variants)
-│       └── layout.* (breakpoint variants for spacious mode)
+├── 03_Themes/ (Theme Mappings)
+│   ├── Day.json (Light theme - optimized for daytime use)
+│   │   ├── Surface colors (primary, secondary, tertiary)
+│   │   ├── Text colors (on-surface, on-primary)
+│   │   └── Background colors (WCAG AA compliant)
+│   └── Night.json (Dark theme - optimized for nighttime use)
+│       └── Mirrored structure with dark-optimized colors
 │
 ├── 04_Motion/ (Animation Tokens)
 │   └── Animations.json (15 tokens - motion timing & easing)
@@ -156,7 +139,7 @@ Tokens/ (Token files directly in Tokens folder)
 │       └── interaction.dragging.* (opacity: 0.6, dropZone indicators)
 │
 └── 07_Components/ (Component Composition Tokens) ⚠️ PARTIAL
-    └── Compositions.json (~40 tokens - 4/15 component types)
+    └── Compositions.json (9/15 component types - 60% coverage)
         ├── ✅ button.* (Primary, Secondary, Tertiary, Danger)
         │   └── Includes: sizes (small/medium/large), states, interactions
         ├── ✅ card.* (Default, Elevated, Interactive, Compact, Large)
@@ -164,15 +147,15 @@ Tokens/ (Token files directly in Tokens folder)
         ├── ✅ input.* (Text input + all states)
         │   └── Includes: label, helper text, error text, placeholder, readonly
         ├── ✅ notification.* (Success, Error, Warning, Info + badge, toast)
-        ├── ❌ checkbox.* (NOT YET - needed for forms)
-        ├── ❌ radio.* (NOT YET - needed for forms)
-        ├── ❌ toggle.* (NOT YET - needed for mobile/settings)
-        ├── ❌ select.* (NOT YET - needed for dropdowns)
-        ├── ❌ modal.* (NOT YET - needed for overlays)
+        ├── ✅ checkbox.* (Default, checked, hover, error, disabled states)
+        ├── ✅ radio.* (Default, selected, hover, error, disabled states)
+        ├── ✅ toggle.* (On/off states with thumb styling)
+        ├── ✅ select.* (Closed, open, dropdown, error states)
+        ├── ✅ modal.* (Container, backdrop, header, body, footer)
+        ├── ❌ textarea.* (NOT YET - multi-line input)
         ├── ❌ tabs.* (NOT YET - needed for navigation)
         ├── ❌ breadcrumb.* (NOT YET - UX hierarchy)
         ├── ❌ navigation.* (NOT YET - primary nav)
-        ├── ❌ textarea.* (NOT YET - multi-line input)
         ├── ❌ tooltip.* (NOT YET - help text)
         └── ❌ popover.* (NOT YET - rich tooltips)
 
@@ -401,19 +384,19 @@ object AppTheme {
 
 | Metric | Value |
 |--------|-------|
-| **Total Tokens** | 280+ |
-| **Baseline (Oct)** | 200 |
-| **Phase 1 Added** | 80+ |
-| **Breaking Changes** | 0 (white-label ready) |
-| **Token Files** | 8 active + $config |
-| **Layers** | 8 (Primitives → Global → Brand → Semantics → Responsive → Interactions → Components → Figma) |
-| **Brand Themes** | 3 (Default, HighContrast, Minimal) |
-| **Density Modes** | 2 (Compact, Spacious) |
-| **Semantic Themes** | 2 (Light, Dark) |
-| **Components Defined** | 4/15 (27%) |
-| **Export Formats** | Kotlin (8 files) + XML (10 files) |
+| **Total Tokens** | 403+ |
+| **Baseline (Oct)** | 335 |
+| **Phase 1 Added** | 68+ |
+| **Breaking Changes** | 1 (AppliedBlue → BrandPrimary - handled) |
+| **Token Files** | 6 active + $config |
+| **Layers** | 6 (Primitives → Brand → Themes → Motion/Interactions → Components → Figma) |
+| **Brand Themes** | 3 (Default, Performance, Luxury) |
+| **Theme Modes** | 2 (Day, Night) |
+| **Typography Compositions** | 23 (in _Base/Value.json) |
+| **Components Defined** | 9/15 (60%) |
+| **Export Formats** | Kotlin + XML + CSS (all 6 brand/theme combinations) |
 | **Platform Support** | Android + Web + QNX |
-| **Industry Score** | 8/10 ✅ (Architecture complete, components 27%) |
+| **Industry Score** | 8/10 ✅ (Architecture complete, components 60%) |
 
 ---
 
@@ -423,9 +406,11 @@ object AppTheme {
 - ✅ Motion system (15 tokens)
 - ✅ Interaction states (40 tokens)
 - ✅ Opacity & backdrop (13 tokens)
-- ⚠️ Components: 4/15 defined (Button, Card, Input, Notification)
-- ✅ 3 Brand variants (Default, HighContrast, Minimal)
-- ✅ All primitives (colors, spacing, typography, elevation, radius, border width)
+- ⚠️ Components: 9/15 defined (Button, Card, Input, Notification, Checkbox, Radio, Toggle, Select, Modal)
+- ✅ 3 Brand variants (Default, Performance, Luxury)
+- ✅ 2 Theme modes (Day, Night)
+- ✅ All primitives (16 categories: colors, spacing, typography, Typography compositions, elevation, radius, border width)
+- ✅ Typography compositions (23 pre-built combinations in _Base/Value.json)
 
 ### Export Completeness
 
@@ -447,7 +432,7 @@ object AppTheme {
 - ✅ attrs.xml (2 accessibility values)
 - ✅ animations.xml (2 motion groups)
 - ✅ interactions.xml (11 state groups)
-- ⚠️ components.xml (4 component groups currently, 11 needed)
+- ⚠️ components.xml (9 component groups currently, 6 needed)
 - ✅ layout.xml (7 layout tokens)
 - ✅ platforms.xml (6+ platform-specific tokens)
 
@@ -460,12 +445,11 @@ object AppTheme {
 - ✅ WCAG 2.1 AA accessibility compliance
 - ✅ Material Design 3 standards alignment
 - ✅ Automated token transformation pipeline
-- ⚠️ Component library: 27% defined (4/15), roadmap established for remaining 11
+- ⚠️ Component library: 60% defined (9/15), roadmap established for remaining 6
 
 **Roadmap for Phase 2:**
-- Critical: Checkbox, Radio, Toggle, Select (form controls)
-- Critical: Modal/Dialog, Navigation/Sidebar (layout/overlays)
-- High: Tabs, Breadcrumb, Textarea (navigation/input)
+- Critical: Textarea (multi-line input)
+- High: Tabs, Breadcrumb, Navigation (navigation components)
 - Medium: Tooltip, Popover (enhancements)
 
 ---
@@ -558,5 +542,5 @@ Each major section includes:
 
 ---
 
-**Version:** 1.1 (Updated) | **Date:** November 14, 2025 | **Status:** ⚠️ Architecture ✅ Complete | Components In Progress
+**Version:** 1.2 (Updated) | **Date:** November 2025 | **Status:** ⚠️ Architecture ✅ Complete | Components 60% Complete (9/15)
 

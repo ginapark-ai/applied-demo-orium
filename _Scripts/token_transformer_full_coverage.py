@@ -1564,13 +1564,17 @@ object TokenProvider {
                                     is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
                                     
                                     # Try to convert string to number if it looks numeric
+                                    # Handle units like "px", "dp", "%" - convert px to dp for Android
                                     numeric_value = None
                                     if isinstance(resolved_value, str):
                                         try:
-                                            if '.' in resolved_value:
-                                                numeric_value = float(resolved_value)
-                                            else:
-                                                numeric_value = int(resolved_value)
+                                            # Remove units for numeric conversion
+                                            numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                            if numeric_str:
+                                                if '.' in numeric_str:
+                                                    numeric_value = float(numeric_str)
+                                                else:
+                                                    numeric_value = int(numeric_str)
                                         except ValueError:
                                             pass
                                     
@@ -1626,6 +1630,10 @@ object TokenProvider {
                                         if resolved_value.startswith("#"):
                                             xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
                                         elif numeric_value is not None and is_dimen_prop:
+                                            # Numeric string for a dimension property - convert px to dp for Android
+                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                        elif "px" in resolved_value.lower() and is_dimen_prop and numeric_value is not None:
+                                            # Convert px to dp for dimension properties (borderWidth, etc.)
                                             xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
                                         elif resolved_value.startswith("@"):
                                             xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
@@ -1726,42 +1734,95 @@ object TokenProvider {
                                                 is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
                                                 is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
                                                 
-                                                # Try to convert string to number if it looks numeric
-                                                numeric_value = None
-                                                if isinstance(resolved_value, str):
-                                                    try:
-                                                        if '.' in resolved_value:
-                                                            numeric_value = float(resolved_value)
-                                                        else:
-                                                            numeric_value = int(resolved_value)
-                                                    except ValueError:
-                                                        pass
-                                                
-                                                # Check if resolved_value is a dict-like string that needs parsing
-                                                parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
-                                                if parsed_dict:
-                                                    # Extract properties from the parsed dict (handled below in main loop)
-                                                    pass
-                                                
-                                                # Generate appropriate XML resource based on value type and property name
-                                                if isinstance(resolved_value, str):
-                                                    if resolved_value.startswith("#"):
-                                                        xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
-                                                    elif numeric_value is not None and is_dimen_prop:
-                                                        xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
-                                                    elif resolved_value.startswith("@"):
-                                                        xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                                    else:
-                                                        xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                                elif isinstance(resolved_value, (int, float)):
-                                                    if is_dimen_prop:
-                                                        xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
-                                                    elif is_color_prop:
-                                                        xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
-                                                    else:
-                                                        xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                    # Try to convert string to number if it looks numeric
+                                    # Handle units like "px", "dp", "%" - convert px to dp for Android
+                                    numeric_value = None
+                                    if isinstance(resolved_value, str):
+                                        try:
+                                            # Remove units for numeric conversion
+                                            numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                            if numeric_str:
+                                                if '.' in numeric_str:
+                                                    numeric_value = float(numeric_str)
                                                 else:
-                                                    xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                                    numeric_value = int(numeric_str)
+                                        except ValueError:
+                                            pass
+                                    
+                                    # Check if resolved_value is a dict-like string that needs parsing
+                                    parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
+                                    if parsed_dict:
+                                        # Extract properties from the parsed dict
+                                        for dict_key, dict_value in sorted(parsed_dict.items()):
+                                            safe_dict_key = self._to_snake_case(dict_key)
+                                            dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
+                                            
+                                            # Resolve the dict value if it's a reference
+                                            if isinstance(dict_value, str):
+                                                dict_resolved = self.resolve_reference(dict_value)
+                                            else:
+                                                dict_resolved = dict_value
+                                            
+                                            # Determine resource type
+                                            dict_key_lower = dict_key.lower()
+                                            is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            
+                                            # Try to convert to number (handle units like "px", "dp")
+                                            dict_numeric = None
+                                            if isinstance(dict_resolved, str):
+                                                try:
+                                                    numeric_str = dict_resolved.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                                    if numeric_str:
+                                                        if '.' in numeric_str:
+                                                            dict_numeric = float(numeric_str)
+                                                        else:
+                                                            dict_numeric = int(numeric_str)
+                                                except ValueError:
+                                                    pass
+                                            
+                                            # Generate XML resource
+                                            if isinstance(dict_resolved, str):
+                                                if dict_resolved.startswith("#"):
+                                                    xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                                elif dict_numeric is not None and is_dict_dimen:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                                elif "px" in dict_resolved.lower() and is_dict_dimen and dict_numeric is not None:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                                elif dict_resolved.startswith("@"):
+                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                else:
+                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                            elif isinstance(dict_resolved, (int, float)):
+                                                if is_dict_dimen:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                            else:
+                                                xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
+                                    # Generate appropriate XML resource based on value type and property name
+                                    elif isinstance(resolved_value, str):
+                                        if resolved_value.startswith("#"):
+                                            xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                        elif numeric_value is not None and is_dimen_prop:
+                                            # Numeric string for a dimension property - convert px to dp for Android
+                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                        elif "px" in resolved_value.lower() and is_dimen_prop and numeric_value is not None:
+                                            # Convert px to dp for dimension properties (borderWidth, etc.)
+                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                        elif resolved_value.startswith("@"):
+                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                        else:
+                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                    elif isinstance(resolved_value, (int, float)):
+                                        if is_dimen_prop:
+                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                        elif is_color_prop:
+                                            xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
+                                        else:
+                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                    else:
+                                        xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
                             continue  # Skip the main loop for nested variants
                         
                         # Main loop for single-level variants

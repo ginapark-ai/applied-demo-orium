@@ -10,4 +10,7 @@ object BorderRadiusTokens {
     val radius24 = 24.dp
     val radius4 = 4.dp
     val radius8 = 8.dp
+    val md = 16.dp
+    val sm = 8.dp
+    val xs = 4.dp
 }

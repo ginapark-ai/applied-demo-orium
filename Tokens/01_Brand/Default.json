@@ -292,5 +292,22 @@
       "type": "dimension",
       "description": "Extra extra large spacing - base scale"
     }
+  },
+  "borderRadius": {
+    "xs": {
+      "value": 4,
+      "type": "dimension",
+      "description": "Extra small border radius - base scale"
+    },
+    "sm": {
+      "value": 8,
+      "type": "dimension",
+      "description": "Small border radius - base scale"
+    },
+    "md": {
+      "value": 16,
+      "type": "dimension",
+      "description": "Medium border radius - base scale"
+    }
   }
 }

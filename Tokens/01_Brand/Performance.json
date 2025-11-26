@@ -307,5 +307,22 @@
       "type": "dimension",
       "description": "Extra extra large spacing - compact scale (0.5x base)"
     }
+  },
+  "borderRadius": {
+    "xs": {
+      "value": 2,
+      "type": "dimension",
+      "description": "Extra small border radius - compact scale (0.5x base)"
+    },
+    "sm": {
+      "value": 4,
+      "type": "dimension",
+      "description": "Small border radius - compact scale (0.5x base)"
+    },
+    "md": {
+      "value": 8,
+      "type": "dimension",
+      "description": "Medium border radius - compact scale (0.5x base)"
+    }
   }
 }

@@ -260,6 +260,9 @@
   --border-radius-spacing-24: 24px;
   --border-radius-spacing-4: 4px;
   --border-radius-spacing-8: 8px;
+  --border-radius-md: 8px;
+  --border-radius-sm: 4px;
+  --border-radius-xs: 2px;
 
   /* ========== BORDER WIDTH ========== */
   --border-width-spacing-0: 0px;

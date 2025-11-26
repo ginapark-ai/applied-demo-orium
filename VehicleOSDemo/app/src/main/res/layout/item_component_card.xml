@@ -103,7 +103,23 @@
                 android:textColor="@color/color_text_primary"
                 android:textSize="@dimen/font_size_20"
                 android:lineSpacingExtra="@dimen/line_height_32"
-                android:fontFamily="@string/typography_body_100_font_family" />
+                android:fontFamily="@string/typography_body_100_font_family"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <!-- Action Button - Using button component tokens -->
+            <Button
+                android:id="@+id/actionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View Details"
+                android:textColor="@color/component_button_primary_default_text_color"
+                android:background="@drawable/button_primary_background"
+                android:paddingTop="@dimen/spacing_sm"
+                android:paddingBottom="@dimen/spacing_sm"
+                android:paddingStart="@dimen/spacing_md"
+                android:paddingEnd="@dimen/spacing_md"
+                android:textSize="@dimen/font_size_24"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

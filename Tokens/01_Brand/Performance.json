@@ -327,9 +327,8 @@
   },
   "asset": {
     "brandLogo": {
-      "value": "placeholder.url",
-      "type": "asset",
-      "description": "Performance brand logo asset - Nissan"
+      "value": "https://thumbs.dreamstime.com/b/logo-audi-car-color-vector-format-aviable-ai-logo-audi-124368762.jpg",
+      "type": "asset"
     },
     "productImage": {
       "value": "https://nar-dam.audi.com/adobe/assets/urn:aaid:aem:0f6b7a99-a203-4923-b1a9-6571887115d4/as/1920x1080-Stage-MY26-A6TFSI-Exterior-FrontProfile-Parked-7603.jpg?width=1920",

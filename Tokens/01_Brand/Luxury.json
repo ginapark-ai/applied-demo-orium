@@ -425,14 +425,12 @@
   },
   "asset": {
     "brandLogo": {
-      "value": "placeholder.url",
-      "type": "asset",
-      "description": "Luxury brand logo asset - Audi"
+      "value": "https://thumbs.dreamstime.com/b/logo-audi-car-color-vector-format-aviable-ai-logo-audi-124368762.jpg",
+      "type": "asset"
     },
     "productImage": {
-      "value": "https://nar-dam.audi.com/adobe/assets/urn:aaid:aem:0f6b7a99-a203-4923-b1a9-6571887115d4/as/1920x1080-Stage-MY26-A6TFSI-Exterior-FrontProfile-Parked-7603.jpg?width=1920",
-      "type": "asset",
-      "description": "Luxury brand product image - Audi"
+      "value": "https://nar-dam.audi.com/adobe/assets/urn:aaid:aem:5aa088c2-f903-424a-a0c6-228906d8b6a4/as/1920x1080-Stage-MY26-Se-tronGT-Exterior-FrontProfile-Parked-6507.jpg?width=1920",
+      "type": "asset"
     }
   },
   "borderRadius": {

@@ -613,12 +613,11 @@
   },
   "asset": {
     "productImage": {
-      "value": "https://www.ford.ca//cxservices/incentives/CampaignImage?imageType=global&initiativeID=11173&imageName=341249v1.jpeg&province=ON&make=Ford&model=Bronco%20Sport&year=2025&language=EN&appContext=ngbs_sploffr&staging=false",
-      "type": "asset",
-      "description": "Default brand product image - Ford"
+      "value": "https://nar-dam.audi.com/adobe/assets/urn:aaid:aem:a3670a61-2b82-4dac-81ac-ad1aac612ac3/as/1920X1080_STAGE_MY26---Q3---Exterior---Front---Parked---8058.jpg?width=1920",
+      "type": "asset"
     },
     "brandLogo": {
-      "value": "placeholder.url",
+      "value": "https://thumbs.dreamstime.com/b/logo-audi-car-color-vector-format-aviable-ai-logo-audi-124368762.jpg",
       "type": "asset"
     }
   }

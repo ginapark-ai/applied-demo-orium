@@ -327,14 +327,13 @@
   },
   "asset": {
     "brandLogo": {
-      "value": "https://1000logos.net/nissan-logo/",
+      "value": "placeholder.url",
       "type": "asset",
       "description": "Performance brand logo asset - Nissan"
     },
     "productImage": {
-      "value": "https://pngimg.com/image/34759",
-      "type": "asset",
-      "description": "Performance brand product image - Nissan GTR"
+      "value": "https://nar-dam.audi.com/adobe/assets/urn:aaid:aem:0f6b7a99-a203-4923-b1a9-6571887115d4/as/1920x1080-Stage-MY26-A6TFSI-Exterior-FrontProfile-Parked-7603.jpg?width=1920",
+      "type": "asset"
     }
   }
 }

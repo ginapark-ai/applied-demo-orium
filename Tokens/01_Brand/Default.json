@@ -612,15 +612,14 @@
     }
   },
   "asset": {
-    "brandLogo": {
-      "value": "https://seeklogo.com/free-vector-logos/ford",
-      "type": "asset",
-      "description": "Default brand logo asset - Ford"
-    },
     "productImage": {
-      "value": "https://purepng.com/photo/17038/ford",
+      "value": "https://www.ford.ca//cxservices/incentives/CampaignImage?imageType=global&initiativeID=11173&imageName=341249v1.jpeg&province=ON&make=Ford&model=Bronco%20Sport&year=2025&language=EN&appContext=ngbs_sploffr&staging=false",
       "type": "asset",
       "description": "Default brand product image - Ford"
+    },
+    "brandLogo": {
+      "value": "placeholder.url",
+      "type": "asset"
     }
   }
 }

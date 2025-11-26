@@ -311,17 +311,17 @@
   "borderRadius": {
     "xs": {
       "value": 2,
-      "type": "dimension",
+      "type": "borderRadius",
       "description": "Extra small border radius - compact scale (0.5x base)"
     },
     "sm": {
       "value": 4,
-      "type": "dimension",
+      "type": "borderRadius",
       "description": "Small border radius - compact scale (0.5x base)"
     },
     "md": {
       "value": 8,
-      "type": "dimension",
+      "type": "borderRadius",
       "description": "Medium border radius - compact scale (0.5x base)"
     }
   }

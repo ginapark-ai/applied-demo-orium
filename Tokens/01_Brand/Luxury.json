@@ -426,17 +426,17 @@
   "borderRadius": {
     "xs": {
       "value": 8,
-      "type": "dimension",
+      "type": "borderRadius",
       "description": "Extra small border radius - spacious scale (2x base)"
     },
     "sm": {
       "value": 16,
-      "type": "dimension",
+      "type": "borderRadius",
       "description": "Small border radius - spacious scale (2x base)"
     },
     "md": {
       "value": 32,
-      "type": "dimension",
+      "type": "borderRadius",
       "description": "Medium border radius - spacious scale (2x base)"
     }
   }

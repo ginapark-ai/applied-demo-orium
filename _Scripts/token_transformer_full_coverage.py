@@ -50,9 +50,7 @@ from dataclasses import dataclass
 class TransformerConfig:
     """Configuration for transformer."""
     base_path: str
-    kotlin_output_path: Optional[str] = None
     xml_output_path: Optional[str] = None
-    css_output_path: Optional[str] = None
     verbose: bool = True
 
 
@@ -67,14 +65,10 @@ class FullCoverageTransformer:
         self.unresolved_refs = set()
         
         # Initialize output paths
-        self.kotlin_output_path = Path(config.kotlin_output_path or self.base_path / "_TransformedTokens" / "kotlin")
         self.xml_output_path = Path(config.xml_output_path or self.base_path / "_TransformedTokens" / "xml")
-        self.css_output_path = Path(config.css_output_path or self.base_path / "_TransformedTokens" / "css")
         
         # Create output directories
-        self.kotlin_output_path.mkdir(parents=True, exist_ok=True)
         self.xml_output_path.mkdir(parents=True, exist_ok=True)
-        self.css_output_path.mkdir(parents=True, exist_ok=True)
 
     def log(self, message: str, level: str = "info"):
         """Log with emoji indicators."""
@@ -171,19 +165,19 @@ class FullCoverageTransformer:
             if not matches:
                 break
                 
-            for token_path in matches:
-                value = self._get_token_value(token_path)
-                if value:
-                    # Convert value to string and recursively resolve if it contains references
-                    value_str = str(value)
-                    if '{' in value_str:
-                        # Recursively resolve nested references
-                        value_str = self.resolve_reference(value_str)
-                    resolved = resolved.replace(f"{{{token_path}}}", value_str)
-                else:
-                    self.unresolved_refs.add(token_path)
-                    # If we can't resolve, keep the original reference
-                    break
+        for token_path in matches:
+            value = self._get_token_value(token_path)
+            if value:
+                # Convert value to string and recursively resolve if it contains references
+                value_str = str(value)
+                if '{' in value_str:
+                    # Recursively resolve nested references
+                    value_str = self.resolve_reference(value_str)
+                resolved = resolved.replace(f"{{{token_path}}}", value_str)
+            else:
+                self.unresolved_refs.add(token_path)
+                # If we can't resolve, keep the original reference
+                break
 
         self.resolved_cache[ref_string] = resolved
         return resolved
@@ -524,418 +518,7 @@ class FullCoverageTransformer:
             "components": self.extract_components(),
         }
 
-    # ===== KOTLIN OUTPUT GENERATION =====
-
-    def generate_kotlin_color(self, colors: Dict[str, str], mode_suffix: str = None) -> str:
-        """Generate Color.kt with all color tokens - valid Kotlin identifiers only."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            # Keep underscores in package name to match directory structure
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\nimport androidx.compose.ui.graphics.Color\n\n'
-        kotlin += 'object ColorTokens {\n'
-        
-        for name, value in sorted(colors.items()):
-            # Clean the color value (remove #, handle hex)
-            clean_value = value.lstrip("#")
-            # Ensure it's a valid hex color with alpha channel
-            if len(clean_value) == 6:
-                # RGB format - add FF alpha for full opacity
-                clean_value = "FF" + clean_value.upper()
-            elif len(clean_value) == 8:
-                # ARGB format - keep as is
-                clean_value = clean_value.upper()
-            else:
-                # Try to extract hex from string
-                hex_match = re.search(r'[0-9A-Fa-f]{6,8}', clean_value)
-                if hex_match:
-                    extracted = hex_match.group().upper()
-                    if len(extracted) == 6:
-                        clean_value = "FF" + extracted
-                    else:
-                        clean_value = extracted
-                else:
-                    clean_value = "FF000000"  # Fallback to opaque black
-            
-            prop_name = self._to_camel_case(name)
-            kotlin += f'    val {prop_name} = Color(0x{clean_value})\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_spacing(self, spacing: Dict[str, int], mode_suffix: str = None) -> str:
-        """Generate Spacing.kt - organized by token name suffix with valid Kotlin identifiers."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\nimport androidx.compose.ui.unit.dp\n\n'
-        kotlin += 'object SpacingTokens {\n'
-        
-        # Extract numeric suffix from token name for grouping
-        def get_sort_key(item):
-            name, value = item
-            # Extract numeric part from name (e.g., "spacing-2" -> 2, "compact-16" -> 16)
-            parts = re.split(r'[-_]', name)
-            if parts and parts[-1].isdigit():
-                suffix_num = int(parts[-1])
-            else:
-                suffix_num = 999
-            return (suffix_num, name)
-        
-        sorted_spacing = sorted(spacing.items(), key=get_sort_key)
-        
-        last_suffix = None
-        for name, value in sorted_spacing:
-            # Extract suffix for grouping
-            parts = re.split(r'[-_]', name)
-            suffix = parts[-1] if parts else ""
-            suffix_num = int(suffix) if suffix.isdigit() else 999
-            
-            # Add comment header for each new token suffix group
-            if suffix_num != last_suffix:
-                if last_suffix is not None:
-                    kotlin += '\n'
-                kotlin += f'    // {suffix} (variants: spacing, compact, spacious)\n'
-                last_suffix = suffix_num
-            
-            prop_name = self._to_camel_case(name)
-            # If name starts with number, use spacing prefix
-            if prop_name and prop_name[0].isdigit():
-                prop_name = 'spacing' + prop_name
-            
-            kotlin += f'    val {prop_name} = {value}.dp\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_typography(self, typography: Dict[str, Dict], mode_suffix: str = None) -> str:
-        """Generate Typography.kt."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\nimport androidx.compose.ui.unit.sp\n\n'
-        kotlin += 'object TypographyTokens {\n'
-        
-        # Font Sizes
-        if typography["fontSize"]:
-            kotlin += '    // Font Sizes (sp)\n'
-            for name in sorted(typography["fontSize"].keys(), key=lambda x: int(x) if x.isdigit() else 999):
-                value = typography["fontSize"][name]
-                kotlin += f'    val fontSize{name} = {value}.sp\n'
-        else:
-            kotlin += '    // Font Sizes (sp) - Placeholder\n'
-            for i in range(11):
-                kotlin += f'    val fontSize{i} = 12.sp\n'
-        
-        # Line Heights
-        kotlin += '\n    // Line Heights (sp)\n'
-        if typography["lineHeight"]:
-            for name in sorted(typography["lineHeight"].keys(), key=lambda x: int(x) if x.isdigit() else 999):
-                value = typography["lineHeight"][name]
-                kotlin += f'    val lineHeight{name} = {value}.sp\n'
-        else:
-            for i in range(5):
-                kotlin += f'    val lineHeight{i} = 20.sp\n'
-        
-        # Font Weights
-        kotlin += '\n    // Font Weights\n'
-        weights = typography["fontWeight"] if typography["fontWeight"] else {
-            "light": 300,
-            "regular": 400,
-            "medium": 500,
-            "semibold": 600,
-            "bold": 700
-        }
-        for name, value in sorted(weights.items()):
-            kotlin += f'    val fontWeight{name.capitalize()} = {value}\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_radius(self, radius: Dict[str, int], mode_suffix: str = None) -> str:
-        """Generate BorderRadius.kt with all border radius tokens - valid Kotlin identifiers."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\nimport androidx.compose.ui.unit.dp\n\n'
-        kotlin += 'object BorderRadiusTokens {\n'
-        kotlin += '    // Border radius values for rounded corners\n\n'
-        
-        if radius:
-            for name in sorted(radius.keys()):
-                value = radius[name]
-                prop_name = self._to_camel_case(name)
-                # If name is just a number, prefix with radius
-                if prop_name and (prop_name.isdigit() or prop_name.startswith('_')):
-                    prop_name = 'radius' + prop_name.lstrip('_')
-                kotlin += f'    val {prop_name} = {value}.dp\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_elevation(self, elevation: Dict[str, Any], mode_suffix: str = None) -> str:
-        """Generate Elevation.kt - extracts blur value from shadow objects."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\nimport androidx.compose.ui.unit.dp\n\n'
-        kotlin += 'object ElevationTokens {\n'
-        kotlin += '    // Material Design 3 elevation levels (blur values from shadow)\n'
-        
-        if elevation:
-            for name in sorted(elevation.keys(), key=lambda x: int(x) if x.isdigit() else 999):
-                value = elevation[name]
-                prop_name = self._to_camel_case(name)
-                # If name is just a number, prefix with underscore
-                if prop_name and (prop_name.isdigit() or (prop_name.startswith('_') and prop_name[1:].isdigit())):
-                    prop_name = '_' + prop_name.lstrip('_')
-                
-                # The value is already the shadow dict (extracted by extract_elevation)
-                if isinstance(value, dict):
-                    # It's a shadow dict - extract blur value
-                    blur = value.get("blur", 0)
-                    # Extract numeric value if it's a string like "4px"
-                    if isinstance(blur, str):
-                        blur = int(blur.replace('px', '').strip()) if blur.replace('px', '').strip().isdigit() else 0
-                    elif isinstance(blur, (int, float)):
-                        blur = int(blur)
-                    else:
-                        blur = 0
-                    kotlin += f'    val {prop_name} = {blur}.dp\n'
-                elif isinstance(value, (int, float)):
-                    kotlin += f'    val {prop_name} = {int(value)}.dp\n'
-                else:
-                    kotlin += f'    val {prop_name} = 0.dp\n'
-        else:
-            # Fallback
-            kotlin += '    val _0 = 0.dp      // Flat\n'
-            kotlin += '    val _1 = 2.dp      // Small shadow\n'
-            kotlin += '    val _2 = 4.dp      // Medium shadow\n'
-            kotlin += '    val _3 = 8.dp      // Large shadow\n'
-            kotlin += '    val _4 = 16.dp     // Extra-large shadow\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_motion(self, motion: Dict[str, Any], mode_suffix: str = None) -> str:
-        """Generate Motion.kt (durations, easing, transitions)."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\n'
-        kotlin += 'object MotionTokens {\n'
-        
-        # Durations
-        kotlin += '    // Durations (milliseconds)\n'
-        if "duration" in motion:
-            for name, token_def in motion["duration"].items():
-                if isinstance(token_def, dict) and "value" in token_def:
-                    kotlin += f'    val duration{self._to_camel_case(name)} = {token_def["value"]}\n'
-        else:
-            kotlin += '    val durationShort = 100\n'
-            kotlin += '    val durationStandard = 300\n'
-            kotlin += '    val durationSlow = 500\n'
-        
-        # Easing
-        kotlin += '\n    // Easing Functions\n'
-        if "easing" in motion:
-            for name, token_def in motion["easing"].items():
-                if isinstance(token_def, dict) and "value" in token_def:
-                    kotlin += f'    val easing{self._to_camel_case(name)} = "{token_def["value"]}"\n'
-        else:
-            kotlin += '    val easingDefault = "cubic-bezier(0.25, 0.46, 0.45, 0.94)"\n'
-            kotlin += '    val easingEntrance = "cubic-bezier(0.34, 1.56, 0.64, 1)"\n'
-            kotlin += '    val easingExit = "cubic-bezier(0.66, 0, 0.66, 0.07)"\n'
-        
-        # Transitions (NEW)
-        kotlin += '\n    // Transitions (combined duration + easing)\n'
-        if "transition" in motion:
-            for name, token_def in motion["transition"].items():
-                if isinstance(token_def, dict) and "value" in token_def:
-                    kotlin += f'    val transition{self._to_camel_case(name)} = "{token_def["value"]}"\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_accessibility(self, accessibility: Dict[str, str], mode_suffix: str = None) -> str:
-        """Generate Accessibility.kt."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\nimport androidx.compose.ui.graphics.Color\n\n'
-        kotlin += 'object AccessibilityTokens {\n'
-        
-        for name, value in sorted(accessibility.items()):
-            if isinstance(value, str) and value.startswith("#"):
-                kotlin += f'    val {self._to_camel_case(name)} = Color(0x{value.lstrip("#")})\n'
-            else:
-                kotlin += f'    val {self._to_camel_case(name)} = "{value}"\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_interactions(self, interactions: Dict[str, Dict], mode_suffix: str = None) -> str:
-        """Generate Interactions.kt for state tokens (hover, active, focus, disabled)."""
-        package = 'com.example.hmithemedemo.ui.theme'
-        if mode_suffix:
-            package = f'{package}.{mode_suffix}'
-        
-        kotlin = f'package {package}\n\nimport androidx.compose.ui.graphics.Color\n\n'
-        kotlin += 'object InteractionTokens {\n'
-        
-        for state_name, state_def in sorted(interactions.items()):
-            kotlin += f'\n    // {state_name.capitalize()} State\n'
-            state_obj_name = self._to_camel_case(state_name)
-            # Ensure it starts with uppercase for object name
-            if state_obj_name:
-                state_obj_name = state_obj_name[0].upper() + state_obj_name[1:]
-            else:
-                state_obj_name = state_name.title()
-            kotlin += f'    object {state_obj_name} {{\n'
-            
-            if isinstance(state_def, dict):
-                for property_name, property_def in sorted(state_def.items()):
-                    if isinstance(property_def, dict) and "value" in property_def:
-                        value = property_def["value"]
-                        prop_name = self._to_camel_case(property_name)
-                        if isinstance(value, str) and value.startswith("#"):
-                            clean_value = value.lstrip("#").upper()
-                            kotlin += f'        val {prop_name} = Color(0x{clean_value})\n'
-                        elif isinstance(value, (int, float)):
-                            kotlin += f'        val {prop_name} = {value}\n'
-                        else:
-                            kotlin += f'        val {prop_name} = "{value}"\n'
-            
-            kotlin += '    }\n'
-        
-        kotlin += '}\n'
-        return kotlin
-
-    def generate_kotlin_token_provider(self) -> str:
-        """Generate TokenProvider.kt - factory that maps brands/themes to token objects."""
-        kotlin = '''package com.example.hmithemedemo.ui.theme.tokens
-
-import com.example.hmithemedemo.ui.theme.default_day.ColorTokens as DefaultDayColorTokens
-import com.example.hmithemedemo.ui.theme.default_day.SpacingTokens as DefaultDaySpacingTokens
-import com.example.hmithemedemo.ui.theme.default_day.TypographyTokens as DefaultDayTypographyTokens
-import com.example.hmithemedemo.ui.theme.default_day.BorderRadiusTokens as DefaultDayBorderRadiusTokens
-
-import com.example.hmithemedemo.ui.theme.default_night.ColorTokens as DefaultNightColorTokens
-import com.example.hmithemedemo.ui.theme.default_night.SpacingTokens as DefaultNightSpacingTokens
-import com.example.hmithemedemo.ui.theme.default_night.TypographyTokens as DefaultNightTypographyTokens
-import com.example.hmithemedemo.ui.theme.default_night.BorderRadiusTokens as DefaultNightBorderRadiusTokens
-
-import com.example.hmithemedemo.ui.theme.luxury_day.ColorTokens as LuxuryDayColorTokens
-import com.example.hmithemedemo.ui.theme.luxury_day.SpacingTokens as LuxuryDaySpacingTokens
-import com.example.hmithemedemo.ui.theme.luxury_day.TypographyTokens as LuxuryDayTypographyTokens
-import com.example.hmithemedemo.ui.theme.luxury_day.BorderRadiusTokens as LuxuryDayBorderRadiusTokens
-
-import com.example.hmithemedemo.ui.theme.luxury_night.ColorTokens as LuxuryNightColorTokens
-import com.example.hmithemedemo.ui.theme.luxury_night.SpacingTokens as LuxuryNightSpacingTokens
-import com.example.hmithemedemo.ui.theme.luxury_night.TypographyTokens as LuxuryNightTypographyTokens
-import com.example.hmithemedemo.ui.theme.luxury_night.BorderRadiusTokens as LuxuryNightBorderRadiusTokens
-
-import com.example.hmithemedemo.ui.theme.performance_day.ColorTokens as PerformanceDayColorTokens
-import com.example.hmithemedemo.ui.theme.performance_day.SpacingTokens as PerformanceDaySpacingTokens
-import com.example.hmithemedemo.ui.theme.performance_day.TypographyTokens as PerformanceDayTypographyTokens
-import com.example.hmithemedemo.ui.theme.performance_day.BorderRadiusTokens as PerformanceDayBorderRadiusTokens
-
-import com.example.hmithemedemo.ui.theme.performance_night.ColorTokens as PerformanceNightColorTokens
-import com.example.hmithemedemo.ui.theme.performance_night.SpacingTokens as PerformanceNightSpacingTokens
-import com.example.hmithemedemo.ui.theme.performance_night.TypographyTokens as PerformanceNightTypographyTokens
-import com.example.hmithemedemo.ui.theme.performance_night.BorderRadiusTokens as PerformanceNightBorderRadiusTokens
-
-/**
- * Token Provider Factory
- * Automatically maps brand/theme combinations to the correct token objects.
- * 
- * Brand mapping:
- *   "A" or "Default" -> Default brand
- *   "B" or "Luxury" -> Luxury brand
- *   "C" or "Performance" -> Performance brand
- * 
- * Theme mapping:
- *   true or "Night" -> Night theme
- *   false or "Day" -> Day theme
- */
-object TokenProvider {
-    /**
-     * Get color tokens for the specified brand and theme.
-     */
-    fun getColorTokens(brand: String, darkTheme: Boolean): Any {
-        return when {
-            brand.equals("B", ignoreCase = true) || brand.equals("Luxury", ignoreCase = true) -> {
-                if (darkTheme) LuxuryNightColorTokens else LuxuryDayColorTokens
-            }
-            brand.equals("C", ignoreCase = true) || brand.equals("Performance", ignoreCase = true) -> {
-                if (darkTheme) PerformanceNightColorTokens else PerformanceDayColorTokens
-            }
-            else -> { // Default or "A"
-                if (darkTheme) DefaultNightColorTokens else DefaultDayColorTokens
-            }
-        }
-    }
-    
-    /**
-     * Get spacing tokens (same across all brands/themes, but included for consistency).
-     */
-    fun getSpacingTokens(brand: String, darkTheme: Boolean): Any {
-        return when {
-            brand.equals("B", ignoreCase = true) || brand.equals("Luxury", ignoreCase = true) -> {
-                if (darkTheme) LuxuryNightSpacingTokens else LuxuryDaySpacingTokens
-            }
-            brand.equals("C", ignoreCase = true) || brand.equals("Performance", ignoreCase = true) -> {
-                if (darkTheme) PerformanceNightSpacingTokens else PerformanceDaySpacingTokens
-            }
-            else -> {
-                if (darkTheme) DefaultNightSpacingTokens else DefaultDaySpacingTokens
-            }
-        }
-    }
-    
-    /**
-     * Get typography tokens (same across all brands/themes, but included for consistency).
-     */
-    fun getTypographyTokens(brand: String, darkTheme: Boolean): Any {
-        return when {
-            brand.equals("B", ignoreCase = true) || brand.equals("Luxury", ignoreCase = true) -> {
-                if (darkTheme) LuxuryNightTypographyTokens else LuxuryDayTypographyTokens
-            }
-            brand.equals("C", ignoreCase = true) || brand.equals("Performance", ignoreCase = true) -> {
-                if (darkTheme) PerformanceNightTypographyTokens else PerformanceDayTypographyTokens
-            }
-            else -> {
-                if (darkTheme) DefaultNightTypographyTokens else DefaultDayTypographyTokens
-            }
-        }
-    }
-    
-    /**
-     * Get border radius tokens (same across all brands/themes, but included for consistency).
-     */
-    fun getBorderRadiusTokens(brand: String, darkTheme: Boolean): Any {
-        return when {
-            brand.equals("B", ignoreCase = true) || brand.equals("Luxury", ignoreCase = true) -> {
-                if (darkTheme) LuxuryNightBorderRadiusTokens else LuxuryDayBorderRadiusTokens
-            }
-            brand.equals("C", ignoreCase = true) || brand.equals("Performance", ignoreCase = true) -> {
-                if (darkTheme) PerformanceNightBorderRadiusTokens else PerformanceDayBorderRadiusTokens
-            }
-            else -> {
-                if (darkTheme) DefaultNightBorderRadiusTokens else DefaultDayBorderRadiusTokens
-            }
-        }
-    }
-}
-'''
-        return kotlin
+    # ===== XML OUTPUT GENERATION =====
 
     # ===== XML OUTPUT GENERATION =====
 
@@ -1512,6 +1095,7 @@ object TokenProvider {
                                 safe_component_name = self._to_snake_case(component_name)
                                 safe_variant_name = self._to_snake_case(variant_name)
                                 # Extract each property from the composition
+                                # CRITICAL: Process ALL properties to ensure padding (horizontal, vertical, top, left, right, bottom) and all other properties are transformed
                                 for prop_key, prop_value in sorted(property_def.items()):
                                     safe_prop_key = self._to_snake_case(prop_key)
                                     
@@ -1579,122 +1163,130 @@ object TokenProvider {
                                     is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
                                     is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation", "horizontal", "vertical"])
                                     
-                                    # Try to convert string to number if it looks numeric
-                                    # Handle units like "px", "dp", "%" - convert px to dp for Android
-                                    numeric_value = None
-                                    if isinstance(resolved_value, str):
-                                        try:
-                                            # Remove units for numeric conversion
+                                    # SIMPLIFIED: Check if this is ANY padding property (padding, horizontalPadding, verticalPadding, paddingTop, etc.)
+                                    is_padding_prop = "padding" in prop_key_lower
+                                    
+                                    # SIMPLIFIED: For padding properties, ALWAYS try to convert to number and write as dimen
+                                    if is_padding_prop:
+                                        padding_numeric = None
+                                        if isinstance(resolved_value, (int, float)):
+                                            padding_numeric = resolved_value
+                                        elif isinstance(resolved_value, str):
+                                            # If it's still a reference, try to resolve it one more time
+                                            if resolved_value.startswith("{") and resolved_value.endswith("}"):
+                                                further_resolved = self.resolve_reference(resolved_value)
+                                                if further_resolved != resolved_value:
+                                                    resolved_value = further_resolved
+                                            
+                                            # Remove units and try to convert
                                             numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
                                             if numeric_str:
-                                                if '.' in numeric_str:
-                                                    numeric_value = float(numeric_str)
-                                                else:
-                                                    numeric_value = int(numeric_str)
-                                        except ValueError:
-                                            pass
-                                    
-                                    # Check if resolved_value is a dict-like string that needs parsing
-                                    parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
-                                    if parsed_dict:
-                                        # Extract properties from the parsed dict
-                                        for dict_key, dict_value in sorted(parsed_dict.items()):
-                                            safe_dict_key = self._to_snake_case(dict_key)
-                                            dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
-                                            
-                                            # Resolve the dict value if it's a reference
-                                            if isinstance(dict_value, str):
-                                                dict_resolved = self.resolve_reference(dict_value)
-                                            else:
-                                                dict_resolved = dict_value
-                                            
-                                            # Determine resource type
-                                            dict_key_lower = dict_key.lower()
-                                            is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
-                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
-                                            
-                                            # Try to convert to number
-                                            dict_numeric = None
-                                            if isinstance(dict_resolved, str):
                                                 try:
-                                                    if '.' in dict_resolved:
-                                                        dict_numeric = float(dict_resolved)
-                                                    else:
-                                                        dict_numeric = int(dict_resolved)
-                                                except ValueError:
+                                                    padding_numeric = float(numeric_str) if '.' in numeric_str else int(numeric_str)
+                                                except (ValueError, TypeError):
                                                     pass
-                                            
-                                            # Generate XML resource
-                                            if isinstance(dict_resolved, str):
-                                                if dict_resolved.startswith("#"):
-                                                    xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
-                                                elif dict_numeric is not None and is_dict_dimen:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
-                                                elif dict_resolved.startswith("@"):
-                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
-                                                else:
-                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
-                                            elif isinstance(dict_resolved, (int, float)):
-                                                if is_dict_dimen:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
-                                                else:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
-                                            else:
-                                                xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
-                                    # Generate appropriate XML resource based on value type and property name
-                                    elif isinstance(resolved_value, str):
-                                        if resolved_value.startswith("#"):
-                                            xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
-                                        elif "padding" in prop_key_lower and ("horizontal" in prop_key_lower or "vertical" in prop_key_lower):
-                                            # Explicitly handle horizontalPadding and verticalPadding
-                                            # Try to resolve and convert to number
+                                        
+                                        if padding_numeric is not None:
+                                            xml += f'    <dimen name="{full_name}">{padding_numeric}dp</dimen>\n'
+                                        else:
+                                            xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                    else:
+                                        # Try to convert string to number if it looks numeric
+                                        numeric_value = None
+                                        if isinstance(resolved_value, str):
                                             try:
-                                                # Remove units for numeric conversion
                                                 numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
                                                 if numeric_str:
-                                                    if '.' in numeric_str:
-                                                        padding_value = float(numeric_str)
+                                                    numeric_value = float(numeric_str) if '.' in numeric_str else int(numeric_str)
+                                            except ValueError:
+                                                pass
+                                        
+                                        # Check if resolved_value is a dict-like string that needs parsing, or an actual dict object
+                                        parsed_dict = None
+                                        if isinstance(resolved_value, str):
+                                            parsed_dict = self._parse_dict_like_string(resolved_value)
+                                        elif isinstance(resolved_value, dict):
+                                            parsed_dict = resolved_value
+                                        if parsed_dict:
+                                            # Extract properties from the parsed dict
+                                            for dict_key, dict_value in sorted(parsed_dict.items()):
+                                                safe_dict_key = self._to_snake_case(dict_key)
+                                                dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
+                                                
+                                                # Resolve the dict value if it's a reference
+                                                if isinstance(dict_value, str):
+                                                    dict_resolved = self.resolve_reference(dict_value)
+                                                else:
+                                                    dict_resolved = dict_value
+                                                
+                                                # Determine resource type
+                                                dict_key_lower = dict_key.lower()
+                                                is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                                is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical", "x", "y", "blur", "spread"])
+                                                
+                                                # Try to convert to number
+                                                dict_numeric = None
+                                                if isinstance(dict_resolved, str):
+                                                    try:
+                                                        dict_numeric = float(dict_resolved) if '.' in dict_resolved else int(dict_resolved)
+                                                    except ValueError:
+                                                        pass
+                                                
+                                                # Generate XML resource
+                                                if isinstance(dict_resolved, str):
+                                                    if dict_resolved.startswith("#"):
+                                                        xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                                    elif dict_numeric is not None and is_dict_dimen:
+                                                        xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                                    elif dict_resolved.startswith("@"):
+                                                        xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
                                                     else:
-                                                        padding_value = int(numeric_str)
-                                                    xml += f'    <dimen name="{full_name}">{padding_value}dp</dimen>\n'
+                                                        xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                elif isinstance(dict_resolved, (int, float)):
+                                                    if is_dict_dimen:
+                                                        xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                    else:
+                                                        xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
+                                        # Generate appropriate XML resource based on value type and property name
+                                        # Skip writing the full dict if we already extracted its properties
+                                        if parsed_dict:
+                                            # Already extracted dict properties, skip writing the full dict
+                                            pass
+                                        elif isinstance(resolved_value, str):
+                                            if resolved_value.startswith("#"):
+                                                xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                            elif numeric_value is not None and is_dimen_prop:
+                                                xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                            elif is_color_prop and not resolved_value.startswith("@") and not resolved_value.startswith("#"):
+                                                if resolved_value.startswith("{") or "color" in resolved_value.lower():
+                                                    further_resolved = self.resolve_reference(resolved_value)
+                                                    if further_resolved.startswith("#"):
+                                                        xml += f'    <color name="{full_name}">{further_resolved}</color>\n'
+                                                    else:
+                                                        xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
                                                 else:
                                                     xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                            except (ValueError, TypeError):
+                                            elif resolved_value.startswith("@"):
                                                 xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                        elif numeric_value is not None and is_dimen_prop:
-                                            # Numeric string for a dimension property - convert px to dp for Android
-                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
-                                        elif "px" in resolved_value.lower() and is_dimen_prop and numeric_value is not None:
-                                            # Convert px to dp for dimension properties (borderWidth, etc.)
-                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
-                                        elif is_color_prop and not resolved_value.startswith("@") and not resolved_value.startswith("#"):
-                                            # For color properties, try to resolve further if it's a reference
-                                            # Check if it's an unresolved reference that might resolve to a color
-                                            if resolved_value.startswith("{") or "color" in resolved_value.lower():
-                                                # Try one more resolution pass
-                                                further_resolved = self.resolve_reference(resolved_value)
-                                                if further_resolved.startswith("#"):
-                                                    xml += f'    <color name="{full_name}">{further_resolved}</color>\n'
-                                                elif further_resolved != resolved_value and further_resolved.startswith("#"):
-                                                    # Recursively resolved to a color
-                                                    xml += f'    <color name="{full_name}">{further_resolved}</color>\n'
-                                                else:
-                                                    xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
                                             else:
                                                 xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                        elif resolved_value.startswith("@"):
-                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                        elif isinstance(resolved_value, (int, float)):
+                                            if is_dimen_prop:
+                                                xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                            elif is_color_prop:
+                                                xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
+                                            else:
+                                                xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                        elif isinstance(resolved_value, dict):
+                                            # Dict objects should have been handled above by extracting properties
+                                            # Only write as string if it wasn't parsed (shouldn't happen, but safety check)
+                                            if not parsed_dict:
+                                                # This shouldn't happen, but if it does, skip writing invalid dict syntax
+                                                pass
                                         else:
-                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                    elif isinstance(resolved_value, (int, float)):
-                                        if is_dimen_prop:
-                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
-                                        elif is_color_prop:
-                                            xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
-                                        else:
-                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
-                                    else:
-                                        xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                            xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
                             continue  # Skip the nested variant processing for direct composition tokens
                         else:
                             # This is a nested variant structure, recurse into it
@@ -1781,95 +1373,124 @@ object TokenProvider {
                                                 is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
                                                 is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation", "horizontal", "vertical"])
                                                 
-                                    # Try to convert string to number if it looks numeric
-                                    # Handle units like "px", "dp", "%" - convert px to dp for Android
-                                    numeric_value = None
-                                    if isinstance(resolved_value, str):
-                                        try:
-                                            # Remove units for numeric conversion
-                                            numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
-                                            if numeric_str:
-                                                if '.' in numeric_str:
-                                                    numeric_value = float(numeric_str)
-                                                else:
-                                                    numeric_value = int(numeric_str)
-                                        except ValueError:
-                                            pass
-                                    
-                                    # Check if resolved_value is a dict-like string that needs parsing
-                                    parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
-                                    if parsed_dict:
-                                        # Extract properties from the parsed dict
-                                        for dict_key, dict_value in sorted(parsed_dict.items()):
-                                            safe_dict_key = self._to_snake_case(dict_key)
-                                            dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
-                                            
-                                            # Resolve the dict value if it's a reference
-                                            if isinstance(dict_value, str):
-                                                dict_resolved = self.resolve_reference(dict_value)
-                                            else:
-                                                dict_resolved = dict_value
-                                            
-                                            # Determine resource type
-                                            dict_key_lower = dict_key.lower()
-                                            is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
-                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
-                                            
-                                            # Try to convert to number (handle units like "px", "dp")
-                                            dict_numeric = None
-                                            if isinstance(dict_resolved, str):
-                                                try:
-                                                    numeric_str = dict_resolved.replace("px", "").replace("dp", "").replace("%", "").strip()
-                                                    if numeric_str:
-                                                        if '.' in numeric_str:
-                                                            dict_numeric = float(numeric_str)
+                                                # SIMPLIFIED: Check if this is ANY padding property (padding, horizontalPadding, verticalPadding, paddingTop, etc.)
+                                                is_padding_prop = "padding" in prop_key_lower
+                                                
+                                                # Build full name for nested variant
+                                                full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_sub_variant_name}_{safe_prop_key}"
+                                                
+                                                # SIMPLIFIED: For padding properties, ALWAYS try to convert to number and write as dimen
+                                                if is_padding_prop:
+                                                    padding_numeric = None
+                                                    if isinstance(resolved_value, (int, float)):
+                                                        padding_numeric = resolved_value
+                                                    elif isinstance(resolved_value, str):
+                                                        # If it's still a reference, try to resolve it one more time
+                                                        if resolved_value.startswith("{") and resolved_value.endswith("}"):
+                                                            further_resolved = self.resolve_reference(resolved_value)
+                                                            if further_resolved != resolved_value:
+                                                                resolved_value = further_resolved
+                                                        
+                                                        # Remove units and try to convert
+                                                        numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                                        if numeric_str:
+                                                            try:
+                                                                padding_numeric = float(numeric_str) if '.' in numeric_str else int(numeric_str)
+                                                            except (ValueError, TypeError):
+                                                                pass
+                                                    
+                                                    if padding_numeric is not None:
+                                                        xml += f'    <dimen name="{full_name}">{padding_numeric}dp</dimen>\n'
+                                                    else:
+                                                        xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                                    continue  # Skip the rest of the logic for padding properties
+                                                
+                                                # Try to convert string to number if it looks numeric
+                                                numeric_value = None
+                                                if isinstance(resolved_value, str):
+                                                    try:
+                                                        # Remove units for numeric conversion
+                                                        numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                                        if numeric_str:
+                                                            numeric_value = float(numeric_str) if '.' in numeric_str else int(numeric_str)
+                                                    except ValueError:
+                                                        pass
+                                                
+                                                # Check if resolved_value is a dict-like string that needs parsing
+                                                parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
+                                                if parsed_dict:
+                                                    # Extract properties from the parsed dict
+                                                    for dict_key, dict_value in sorted(parsed_dict.items()):
+                                                        safe_dict_key = self._to_snake_case(dict_key)
+                                                        dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_sub_variant_name}_{safe_prop_key}_{safe_dict_key}"
+                                                        
+                                                        # Resolve the dict value if it's a reference
+                                                        if isinstance(dict_value, str):
+                                                            dict_resolved = self.resolve_reference(dict_value)
                                                         else:
-                                                            dict_numeric = int(numeric_str)
-                                                except ValueError:
+                                                            dict_resolved = dict_value
+                                                        
+                                                        # Determine resource type
+                                                        dict_key_lower = dict_key.lower()
+                                                        is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                                        is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical", "x", "y", "blur", "spread"])
+                                                        
+                                                        # Try to convert to number (handle units like "px", "dp")
+                                                        dict_numeric = None
+                                                        if isinstance(dict_resolved, str):
+                                                            try:
+                                                                numeric_str = dict_resolved.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                                                if numeric_str:
+                                                                    dict_numeric = float(numeric_str) if '.' in numeric_str else int(numeric_str)
+                                                            except ValueError:
+                                                                pass
+                                                        
+                                                        # Generate XML resource
+                                                        if isinstance(dict_resolved, str):
+                                                            if dict_resolved.startswith("#"):
+                                                                xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                                            elif dict_numeric is not None and is_dict_dimen:
+                                                                xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                                            elif dict_resolved.startswith("@"):
+                                                                xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                            else:
+                                                                xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                        elif isinstance(dict_resolved, (int, float)):
+                                                            if is_dict_dimen:
+                                                                xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                            else:
+                                                                xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                        else:
+                                                            xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
+                                                # Generate appropriate XML resource based on value type and property name
+                                                # Skip writing the full dict if we already extracted its properties
+                                                if parsed_dict:
+                                                    # Already extracted dict properties, skip writing the full dict
                                                     pass
-                                            
-                                            # Generate XML resource
-                                            if isinstance(dict_resolved, str):
-                                                if dict_resolved.startswith("#"):
-                                                    xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
-                                                elif dict_numeric is not None and is_dict_dimen:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
-                                                elif "px" in dict_resolved.lower() and is_dict_dimen and dict_numeric is not None:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
-                                                elif dict_resolved.startswith("@"):
-                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                elif isinstance(resolved_value, str):
+                                                    if resolved_value.startswith("#"):
+                                                        xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                                    elif numeric_value is not None and is_dimen_prop:
+                                                        xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                                    elif resolved_value.startswith("@"):
+                                                        xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                                    else:
+                                                        xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                                elif isinstance(resolved_value, (int, float)):
+                                                    if is_dimen_prop:
+                                                        xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                                    elif is_color_prop:
+                                                        xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
+                                                    else:
+                                                        xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                                elif isinstance(resolved_value, dict):
+                                                    # Dict objects should have been handled above by extracting properties
+                                                    # Only write as string if it wasn't parsed (shouldn't happen, but safety check)
+                                                    if not parsed_dict:
+                                                        # This shouldn't happen, but if it does, skip writing invalid dict syntax
+                                                        pass
                                                 else:
-                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
-                                            elif isinstance(dict_resolved, (int, float)):
-                                                if is_dict_dimen:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
-                                                else:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
-                                            else:
-                                                xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
-                                    # Generate appropriate XML resource based on value type and property name
-                                    elif isinstance(resolved_value, str):
-                                        if resolved_value.startswith("#"):
-                                            xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
-                                        elif numeric_value is not None and is_dimen_prop:
-                                            # Numeric string for a dimension property - convert px to dp for Android
-                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
-                                        elif "px" in resolved_value.lower() and is_dimen_prop and numeric_value is not None:
-                                            # Convert px to dp for dimension properties (borderWidth, etc.)
-                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
-                                        elif resolved_value.startswith("@"):
-                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                        else:
-                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                    elif isinstance(resolved_value, (int, float)):
-                                        if is_dimen_prop:
-                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
-                                        elif is_color_prop:
-                                            xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
-                                        else:
-                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
-                                    else:
-                                        xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                                    xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
                             continue  # Skip the main loop for nested variants
                         
                         # Main loop for single-level variants
@@ -1920,95 +1541,121 @@ object TokenProvider {
                                     is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
                                     is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation", "horizontal", "vertical"])
                                     
-                                    # Try to convert string to number if it looks numeric
-                                    numeric_value = None
-                                    if isinstance(resolved_value, str):
-                                        try:
-                                            # Try int first, then float
-                                            if '.' in resolved_value:
-                                                numeric_value = float(resolved_value)
-                                            else:
-                                                numeric_value = int(resolved_value)
-                                        except ValueError:
-                                            pass
+                                    # SIMPLIFIED: Check if this is ANY padding property (padding, horizontalPadding, verticalPadding, paddingTop, etc.)
+                                    is_padding_prop = "padding" in prop_key_lower
                                     
-                                    # Check if resolved_value is a dict-like string that needs parsing
-                                    parsed_dict = self._parse_dict_like_string(resolved_value) if isinstance(resolved_value, str) else None
-                                    if parsed_dict:
-                                        # Extract properties from the parsed dict
-                                        for dict_key, dict_value in sorted(parsed_dict.items()):
-                                            safe_dict_key = self._to_snake_case(dict_key)
-                                            dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
+                                    # SIMPLIFIED: For padding properties, ALWAYS try to convert to number and write as dimen
+                                    if is_padding_prop:
+                                        padding_numeric = None
+                                        if isinstance(resolved_value, (int, float)):
+                                            padding_numeric = resolved_value
+                                        elif isinstance(resolved_value, str):
+                                            # If it's still a reference, try to resolve it one more time
+                                            if resolved_value.startswith("{") and resolved_value.endswith("}"):
+                                                further_resolved = self.resolve_reference(resolved_value)
+                                                if further_resolved != resolved_value:
+                                                    resolved_value = further_resolved
                                             
-                                            # Resolve the dict value if it's a reference
-                                            if isinstance(dict_value, str):
-                                                dict_resolved = self.resolve_reference(dict_value)
-                                            else:
-                                                dict_resolved = dict_value
-                                            
-                                            # Determine resource type
-                                            dict_key_lower = dict_key.lower()
-                                            is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
-                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
-                                            
-                                            # Try to convert to number
-                                            dict_numeric = None
-                                            if isinstance(dict_resolved, str):
+                                            # Remove units and try to convert
+                                            numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                            if numeric_str:
                                                 try:
-                                                    if '.' in dict_resolved:
-                                                        dict_numeric = float(dict_resolved)
-                                                    else:
-                                                        dict_numeric = int(dict_resolved)
-                                                except ValueError:
+                                                    padding_numeric = float(numeric_str) if '.' in numeric_str else int(numeric_str)
+                                                except (ValueError, TypeError):
                                                     pass
-                                            
-                                            # Generate XML resource
-                                            if isinstance(dict_resolved, str):
-                                                if dict_resolved.startswith("#"):
-                                                    xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
-                                                elif dict_numeric is not None and is_dict_dimen:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
-                                                elif dict_resolved.startswith("@"):
-                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
-                                                else:
-                                                    xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
-                                            elif isinstance(dict_resolved, (int, float)):
-                                                if is_dict_dimen:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
-                                                else:
-                                                    xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
-                                            else:
-                                                xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
-                                    # Generate appropriate XML resource based on value type and property name
-                                    elif isinstance(resolved_value, str):
-                                        if resolved_value.startswith("#"):
-                                            xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
-                                        elif numeric_value is not None and is_dimen_prop:
-                                            # Numeric string for a dimension property
-                                            xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
-                                        elif resolved_value.startswith("@"):
-                                            # Reference to another resource - use as string for now
-                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                        elif "padding" in prop_key_lower and ("horizontal" in prop_key_lower or "vertical" in prop_key_lower):
-                                            # Explicitly handle horizontalPadding and verticalPadding
-                                            # Try to resolve and convert to number
-                                            try:
-                                                padding_value = int(resolved_value) if '.' not in resolved_value else float(resolved_value)
-                                                xml += f'    <dimen name="{full_name}">{padding_value}dp</dimen>\n'
-                                            except (ValueError, TypeError):
-                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                        
+                                        if padding_numeric is not None:
+                                            xml += f'    <dimen name="{full_name}">{padding_numeric}dp</dimen>\n'
                                         else:
-                                            xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
-                                    elif isinstance(resolved_value, (int, float)):
-                                        if is_dimen_prop:
-                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
-                                        elif is_color_prop:
-                                            # Assume it's a color value if it's a number for a color property
-                                            xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
-                                        else:
-                                            xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                            xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
                                     else:
-                                        xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
+                                        # Try to convert string to number if it looks numeric
+                                        numeric_value = None
+                                        if isinstance(resolved_value, str):
+                                            try:
+                                                numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                                if numeric_str:
+                                                    numeric_value = float(numeric_str) if '.' in numeric_str else int(numeric_str)
+                                            except ValueError:
+                                                pass
+                                        
+                                        # Check if resolved_value is a dict-like string that needs parsing, or an actual dict object
+                                        parsed_dict = None
+                                        if isinstance(resolved_value, str):
+                                            parsed_dict = self._parse_dict_like_string(resolved_value)
+                                        elif isinstance(resolved_value, dict):
+                                            parsed_dict = resolved_value
+                                        if parsed_dict:
+                                            # Extract properties from the parsed dict
+                                            for dict_key, dict_value in sorted(parsed_dict.items()):
+                                                safe_dict_key = self._to_snake_case(dict_key)
+                                                dict_full_name = f"component_{safe_component_name}_{safe_variant_name}_{safe_prop_key}_{safe_dict_key}"
+                                                
+                                                # Resolve the dict value if it's a reference
+                                                if isinstance(dict_value, str):
+                                                    dict_resolved = self.resolve_reference(dict_value)
+                                                else:
+                                                    dict_resolved = dict_value
+                                                
+                                                # Determine resource type
+                                                dict_key_lower = dict_key.lower()
+                                                is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
+                                                is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical", "x", "y", "blur", "spread"])
+                                                
+                                                # Try to convert to number
+                                                dict_numeric = None
+                                                if isinstance(dict_resolved, str):
+                                                    try:
+                                                        dict_numeric = float(dict_resolved) if '.' in dict_resolved else int(dict_resolved)
+                                                    except ValueError:
+                                                        pass
+                                                
+                                                # Generate XML resource
+                                                if isinstance(dict_resolved, str):
+                                                    if dict_resolved.startswith("#"):
+                                                        xml += f'    <color name="{dict_full_name}">{dict_resolved}</color>\n'
+                                                    elif dict_numeric is not None and is_dict_dimen:
+                                                        xml += f'    <dimen name="{dict_full_name}">{dict_numeric}dp</dimen>\n'
+                                                    elif dict_resolved.startswith("@"):
+                                                        xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                    else:
+                                                        xml += f'    <string name="{dict_full_name}">{dict_resolved}</string>\n'
+                                                elif isinstance(dict_resolved, (int, float)):
+                                                    if is_dict_dimen:
+                                                        xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                    else:
+                                                        xml += f'    <dimen name="{dict_full_name}">{dict_resolved}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <string name="{dict_full_name}">{str(dict_resolved)}</string>\n'
+                                        # Generate appropriate XML resource based on value type and property name
+                                        # Skip writing the full dict if we already extracted its properties
+                                        if parsed_dict:
+                                            # Already extracted dict properties, skip writing the full dict
+                                            pass
+                                        elif isinstance(resolved_value, str):
+                                            if resolved_value.startswith("#"):
+                                                xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                            elif numeric_value is not None and is_dimen_prop:
+                                                xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                            elif resolved_value.startswith("@"):
+                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                            else:
+                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                        elif isinstance(resolved_value, (int, float)):
+                                            if is_dimen_prop:
+                                                xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                            elif is_color_prop:
+                                                xml += f'    <color name="{full_name}">#{int(resolved_value):06x}</color>\n'
+                                            else:
+                                                xml += f'    <dimen name="{full_name}">{resolved_value}dp</dimen>\n'
+                                        elif isinstance(resolved_value, dict):
+                                            # Dict objects should have been handled above by extracting properties
+                                            # Only write as string if it wasn't parsed (shouldn't happen, but safety check)
+                                            if not parsed_dict:
+                                                # This shouldn't happen, but if it does, skip writing invalid dict syntax
+                                                pass
+                                        else:
+                                            xml += f'    <string name="{full_name}">{str(resolved_value)}</string>\n'
                             elif isinstance(property_def, dict) and "value" in property_def:
                                 # Handle nested structure where property_def has a "value" key
                                 value = property_def["value"]
@@ -2139,139 +1786,7 @@ object TokenProvider {
         xml += '</resources>\n'
         return xml
 
-    # ===== CSS OUTPUT GENERATION =====
-
-    def generate_css_tokens(self, tokens: Dict[str, Any]) -> str:
-        """Generate comprehensive CSS custom properties file."""
-        css = '/* Design Tokens - CSS Custom Properties */\n'
-        css += '/* Generated from design tokens with mode/theme support */\n\n'
-        css += ':root {\n'
-        
-        # Colors
-        css += '\n  /* ========== COLORS ========== */\n'
-        for name, value in sorted(tokens["colors"].items()):
-            css_var = f'  --{self._to_kebab_case(name)}: {value};\n'
-            css += css_var
-        
-        # Spacing
-        css += '\n  /* ========== SPACING ========== */\n'
-        for name, value in sorted(tokens["spacing"].items()):
-            css += f'  --spacing-{self._to_kebab_case(name)}: {value}px;\n'
-        
-        # Typography - Font Sizes
-        css += '\n  /* ========== TYPOGRAPHY - FONT SIZES ========== */\n'
-        if tokens["typography"].get("fontSize"):
-            for name, value in sorted(tokens["typography"]["fontSize"].items()):
-                css += f'  --font-size-{self._to_kebab_case(name)}: {value}px;\n'
-        
-        # Typography - Line Heights
-        css += '\n  /* ========== TYPOGRAPHY - LINE HEIGHTS ========== */\n'
-        if tokens["typography"].get("lineHeight"):
-            for name, value in sorted(tokens["typography"]["lineHeight"].items()):
-                css += f'  --line-height-{self._to_kebab_case(name)}: {value}px;\n'
-        
-        # Typography - Font Weights
-        css += '\n  /* ========== TYPOGRAPHY - FONT WEIGHTS ========== */\n'
-        if tokens["typography"].get("fontWeight"):
-            for name, value in sorted(tokens["typography"]["fontWeight"].items()):
-                css += f'  --font-weight-{self._to_kebab_case(name)}: {value};\n'
-        
-        # Border Radius
-        css += '\n  /* ========== BORDER RADIUS ========== */\n'
-        for name, value in sorted(tokens["radius"].items()):
-            css += f'  --border-radius-{self._to_kebab_case(name)}: {value}px;\n'
-        
-        # Border Width
-        css += '\n  /* ========== BORDER WIDTH ========== */\n'
-        if tokens.get("border_width"):
-            for name, value in sorted(tokens["border_width"].items()):
-                css += f'  --border-width-{self._to_kebab_case(name)}: {value}px;\n'
-        
-        # Elevation
-        css += '\n  /* ========== ELEVATION ========== */\n'
-        if tokens.get("elevation"):
-            for name, value in sorted(tokens["elevation"].items()):
-                if isinstance(value, dict) and "value" in value:
-                    shadow_val = value["value"]
-                    if isinstance(shadow_val, dict):
-                        blur = shadow_val.get("blur", 4)
-                        css += f'  --elevation-{self._to_kebab_case(name)}: {blur}px;\n'
-                    else:
-                        css += f'  --elevation-{self._to_kebab_case(name)}: {value}px;\n'
-                else:
-                    css += f'  --elevation-{self._to_kebab_case(name)}: {value}px;\n'
-        
-        # Motion - Durations
-        css += '\n  /* ========== MOTION - DURATIONS ========== */\n'
-        if tokens.get("motion") and "duration" in tokens["motion"]:
-            for name, token_def in sorted(tokens["motion"]["duration"].items()):
-                if isinstance(token_def, dict) and "value" in token_def:
-                    css += f'  --motion-duration-{self._to_kebab_case(name)}: {token_def["value"]}ms;\n'
-        
-        # Motion - Easing
-        css += '\n  /* ========== MOTION - EASING ========== */\n'
-        if tokens.get("motion") and "easing" in tokens["motion"]:
-            for name, token_def in sorted(tokens["motion"]["easing"].items()):
-                if isinstance(token_def, dict) and "value" in token_def:
-                    css += f'  --motion-easing-{self._to_kebab_case(name)}: {token_def["value"]};\n'
-        
-        # Accessibility
-        css += '\n  /* ========== ACCESSIBILITY ========== */\n'
-        for name, value in sorted(tokens["accessibility"].items()):
-            css += f'  --accessibility-{self._to_kebab_case(name)}: {value};\n'
-        
-        # Interactions
-        css += '\n  /* ========== INTERACTIONS ========== */\n'
-        if tokens.get("interactions"):
-            for state_name, state_def in sorted(tokens["interactions"].items()):
-                if isinstance(state_def, dict):
-                    for property_name, property_def in sorted(state_def.items()):
-                        if isinstance(property_def, dict) and "value" in property_def:
-                            value = property_def["value"]
-                            css_var_name = f'--interaction-{self._to_kebab_case(state_name)}-{self._to_kebab_case(property_name)}'
-                            if isinstance(value, str) and value.startswith("#"):
-                                css += f'  {css_var_name}: {value};\n'
-                            elif isinstance(value, (int, float)):
-                                css += f'  {css_var_name}: {value}px;\n'
-                            else:
-                                css += f'  {css_var_name}: {value};\n'
-        
-        css += '}\n'
-        return css
-
-    def _to_kebab_case(self, name: str) -> str:
-        """Convert camelCase/snake_case to kebab-case."""
-        # First convert to snake_case, then replace underscores with hyphens
-        snake = self._to_snake_case(name)
-        return snake.replace('_', '-')
-
     # ===== UTILITY METHODS =====
-
-    def _to_camel_case(self, name: str) -> str:
-        """Convert snake_case/kebab-case to valid Kotlin camelCase identifier."""
-        # First normalize: replace dashes and underscores with spaces, then split
-        normalized = re.sub(r'[-_]', ' ', name)
-        components = normalized.split()
-        
-        if not components:
-            return name
-        
-        # Handle numbers at start by prefixing with underscore
-        first = components[0]
-        if first and first[0].isdigit():
-            first = '_' + first
-        
-        # Convert to camelCase
-        result = first.lower() + ''.join(x.title() for x in components[1:])
-        
-        # Remove any remaining invalid characters
-        result = re.sub(r'[^a-zA-Z0-9_]', '', result)
-        
-        # Ensure it doesn't start with a number
-        if result and result[0].isdigit():
-            result = '_' + result
-        
-        return result if result else name
 
     def _to_snake_case(self, name: str) -> str:
         """Convert camelCase/mixed to snake_case, replacing hyphens with underscores for valid Android resource names."""
@@ -2289,25 +1804,12 @@ object TokenProvider {
 
     def _cleanup_root_files(self):
         """Clean up old root-level token files when using --modes."""
-        # Kotlin root files to remove (keep TokenProvider.kt)
-        kotlin_root_files = [
-            "Color.kt", "Spacing.kt", "Typography.kt", "BorderRadius.kt",
-            "Elevation.kt", "Motion.kt", "Accessibility.kt", "Interactions.kt"
-        ]
-        
         # XML root files to remove
         xml_root_files = [
             "colors.xml", "dimens.xml", "radius.xml", "typography.xml",
             "attrs.xml", "animations.xml", "interactions.xml", "components.xml",
             "layout.xml", "platforms.xml"
         ]
-        
-        # Remove Kotlin root files
-        for filename in kotlin_root_files:
-            filepath = self.kotlin_output_path / filename
-            if filepath.exists():
-                filepath.unlink()
-                self.log(f"  Removed old root file: {filename}", "info")
         
         # Remove XML root files
         for filename in xml_root_files:
@@ -2318,7 +1820,7 @@ object TokenProvider {
 
     def generate_all_outputs(self, export_modes: bool = True):
         """
-        Generate all Kotlin and XML output files.
+        Generate all XML output files.
         
         Args:
             export_modes: If True, export separate files for each brand/theme combination.
@@ -2349,9 +1851,7 @@ object TokenProvider {
                     
                     # Generate outputs with mode suffix
                     mode_suffix = f"{brand.lower()}_{theme.lower()}"
-                    self._generate_kotlin_outputs(all_tokens, mode_suffix=mode_suffix)
                     self._generate_xml_outputs(all_tokens, mode_suffix=mode_suffix)
-                    self._generate_css_outputs(all_tokens, mode_suffix=mode_suffix)
             
             self.log("\n✅ All mode combinations exported successfully!", "success")
         else:
@@ -2359,49 +1859,11 @@ object TokenProvider {
             self.load_all_tokens(brand="Default", theme="Day")
             all_tokens = self.extract_all_tokens()
             
-            self.log("Generating Kotlin outputs...", "info")
-            self._generate_kotlin_outputs(all_tokens)
-            
             self.log("Generating XML outputs...", "info")
             self._generate_xml_outputs(all_tokens)
             
-            self.log("Generating CSS outputs...", "info")
-            self._generate_css_outputs(all_tokens)
-            
             self.log("✅ All outputs generated successfully!", "success")
             self._print_summary(all_tokens)
-
-    def _generate_kotlin_outputs(self, tokens: Dict[str, Any], mode_suffix: str = None):
-        """Generate all Kotlin files."""
-        outputs = {
-            "Color.kt": self.generate_kotlin_color(tokens["colors"], mode_suffix),
-            "Spacing.kt": self.generate_kotlin_spacing(tokens["spacing"], mode_suffix),
-            "Typography.kt": self.generate_kotlin_typography(tokens["typography"], mode_suffix),
-            "BorderRadius.kt": self.generate_kotlin_radius(tokens["radius"], mode_suffix),
-            "Elevation.kt": self.generate_kotlin_elevation(tokens["elevation"], mode_suffix),
-            "Motion.kt": self.generate_kotlin_motion(tokens["motion"], mode_suffix),
-            "Accessibility.kt": self.generate_kotlin_accessibility(tokens["accessibility"], mode_suffix),
-            "Interactions.kt": self.generate_kotlin_interactions(tokens["interactions"], mode_suffix),
-        }
-        
-        # Create mode-specific subdirectory if exporting modes
-        output_path = self.kotlin_output_path
-        if mode_suffix:
-            output_path = self.kotlin_output_path / mode_suffix
-            output_path.mkdir(parents=True, exist_ok=True)
-        
-        for filename, content in outputs.items():
-            filepath = output_path / filename
-            with open(filepath, 'w') as f:
-                f.write(content)
-            self.log(f"  Generated {filepath.relative_to(self.kotlin_output_path.parent)}", "success")
-        
-        # Generate TokenProvider.kt in the root kotlin directory (only once, after all modes)
-        if mode_suffix == "performance_night":  # Generate after last mode
-            provider_path = self.kotlin_output_path / "TokenProvider.kt"
-            with open(provider_path, 'w') as f:
-                f.write(self.generate_kotlin_token_provider())
-            self.log(f"  Generated {provider_path.relative_to(self.kotlin_output_path.parent)}", "success")
 
     def _generate_xml_outputs(self, tokens: Dict[str, Any], mode_suffix: str = None):
         """Generate all XML files."""
@@ -2435,40 +1897,12 @@ object TokenProvider {
                 f.write(content)
             self.log(f"  Generated {filepath.relative_to(self.xml_output_path.parent)}", "success")
 
-    def _generate_css_outputs(self, tokens: Dict[str, Any], mode_suffix: str = None):
-        """Generate all CSS files."""
-        outputs = {
-            "tokens.css": self.generate_css_tokens(tokens),
-        }
-        
-        # Create mode-specific subdirectory if exporting modes
-        output_path = self.css_output_path
-        if mode_suffix:
-            output_path = self.css_output_path / mode_suffix
-            output_path.mkdir(parents=True, exist_ok=True)
-        
-        for filename, content in outputs.items():
-            filepath = output_path / filename
-            with open(filepath, 'w') as f:
-                f.write(content)
-            self.log(f"  Generated {filepath.relative_to(self.css_output_path.parent)}", "success")
-
     def _print_summary(self, tokens: Dict[str, Any], mode_suffix: str = None):
         """Print generation summary."""
         mode_info = f" (Mode: {mode_suffix})" if mode_suffix else ""
         print("\n" + "="*60)
         print(f"FULL COVERAGE TOKEN TRANSFORMATION COMPLETE{mode_info}")
         print("="*60)
-        print(f"\n📁 Kotlin outputs: {self.kotlin_output_path}")
-        print(f"   ├─ Color.kt ({len(tokens['colors'])} colors)")
-        print(f"   ├─ Spacing.kt ({len(tokens['spacing'])} tokens)")
-        print(f"   ├─ Typography.kt ({sum(len(v) for v in tokens['typography'].values())} tokens)")
-        print(f"   ├─ BorderRadius.kt ({len(tokens['radius'])} tokens)")
-        print(f"   ├─ Elevation.kt ({len(tokens['elevation'])} tokens)")
-        print(f"   ├─ Motion.kt ({len(tokens.get('motion', {}))} groups)")
-        print(f"   ├─ Accessibility.kt ({len(tokens['accessibility'])} tokens)")
-        print(f"   └─ Interactions.kt ({len(tokens.get('interactions', {}))} state groups)")
-        
         print(f"\n📁 XML outputs: {self.xml_output_path}")
         print(f"   ├─ colors.xml ({len(tokens['colors'])} colors)")
         print(f"   ├─ dimens.xml ({len(tokens['spacing'])} spacing values)")
@@ -2478,9 +1912,6 @@ object TokenProvider {
         print(f"   ├─ animations.xml ({len(tokens.get('motion', {}))} motion groups)")
         print(f"   ├─ interactions.xml ({len(tokens.get('interactions', {}))} state groups)")
         print(f"   └─ components.xml ({len(tokens.get('components', {}))} component groups)")
-        
-        print(f"\n📁 CSS outputs: {self.css_output_path}")
-        print(f"   └─ tokens.css (all tokens as CSS custom properties)")
         
         total_tokens = (
             len(tokens['colors']) +
@@ -2495,7 +1926,7 @@ object TokenProvider {
         print(f"   ✓ Base tokens loaded")
         print(f"   ✓ Brand and theme tokens loaded")
         print(f"   ✓ All token types extracted")
-        print(f"   ✓ Both Kotlin and XML outputs generated")
+        print(f"   ✓ XML outputs generated")
         print("="*60 + "\n")
 
 

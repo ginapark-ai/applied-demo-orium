@@ -1,5 +1,8 @@
 # Client Feedback Review - Token XML Generation
 
+**Last Updated:** November 2025  
+**Status:** All critical issues resolved ✅
+
 ## Status Summary
 
 | Issue | Status | Notes |
@@ -9,7 +12,7 @@
 | 3. Template syntax in XML | ⚠️ **PARTIALLY FIXED** | Improved resolution; complex outline strings may need manual conversion |
 | 4. JSON-like definitions | ✅ **ADDRESSED** | Transformer filters out JSON-like structures |
 | 5. Dynamic modifiers | ✅ **ADDRESSED** | No desaturate/darken modifiers found |
-| 6. Box shadows | ✅ **ADDRESSED** | Converted to elevation tokens (y offset in dp) |
+| 6. Box shadows | ✅ **FIXED** | Invalid dict strings removed; properties extracted individually (x, y, blur, spread, color) |
 | 7. Metadata strings | ✅ **FIXED** | All non-functional metadata strings removed |
 
 ---
@@ -131,27 +134,45 @@ if is_json_like:
 
 ### 6. ✅ Box Shadows Support
 
-**Status: ADDRESSED**
+**Status: FIXED**
 
-Box shadows are now converted to Android elevation tokens:
-
-**Implementation:**
-- Added `generate_xml_elevation()` method
-- Converts boxShadow objects to Android elevation values (y offset in dp)
-- Generated as `elevation.xml` with tokens: `elevation_0` through `elevation_4`
-
-**Example:**
+**Issue Found:**
+Box shadow dict objects were being written as invalid Python dict strings in XML, causing Android build errors:
 ```xml
-<dimen name="elevation_1">2dp</dimen>  <!-- From boxShadow with y=2 -->
-<dimen name="elevation_3">8dp</dimen>  <!-- From boxShadow with y=8 -->
+<!-- INVALID - Caused "Invalid unicode escape sequence" errors -->
+<string name="component_card_default_box_shadow">{'x': 0, 'y': 2, 'blur': 4, 'spread': 0, 'color': 'rgba(0, 0, 0, 0.1)'}</string>
 ```
 
-**Usage in VehicleOSDemo:**
+**Fix Applied:**
+- Updated transformer to detect dict objects (not just dict-like strings)
+- Extract individual box shadow properties instead of writing full dict
+- Generate separate resources for each property:
+  - `component_card_default_box_shadow_x` (dimen)
+  - `component_card_default_box_shadow_y` (dimen)
+  - `component_card_default_box_shadow_blur` (dimen)
+  - `component_card_default_box_shadow_spread` (dimen)
+  - `component_card_default_box_shadow_color` (string)
+- Skip writing the full dict after extracting properties
+- Added box shadow properties (x, y, blur, spread) to dimension detection
+
+**Result:**
 ```xml
-<CardView app:cardElevation="@dimen/elevation_1" />
+<!-- VALID - Individual properties extracted -->
+<dimen name="component_card_default_box_shadow_x">0dp</dimen>
+<dimen name="component_card_default_box_shadow_y">2dp</dimen>
+<dimen name="component_card_default_box_shadow_blur">4dp</dimen>
+<dimen name="component_card_default_box_shadow_spread">0dp</dimen>
+<string name="component_card_default_box_shadow_color">rgba(0, 0, 0, 0.1)</string>
+<!-- Full dict string removed - no longer generated -->
 ```
 
-**Action Required:** None - already working correctly.
+**Verification:**
+- ✅ All invalid box shadow dict strings removed from generated XML
+- ✅ Android build now compiles successfully
+- ✅ Individual box shadow properties available for use
+- ✅ Applied to all 6 brand/theme combinations
+
+**Action Required:** None - fully fixed and verified.
 
 ---
 
@@ -200,6 +221,7 @@ Box shadows are now converted to Android elevation tokens:
 1. **✅ Fixed border width units** - All border width tokens now use "dp" units
 2. **✅ Improved template syntax resolution** - Added better color reference resolution logic
 3. **✅ Removed metadata strings** - All cursor, type, and redundant identifier strings removed
+4. **✅ Fixed box shadow dict strings** - Invalid Python dict syntax removed; properties extracted individually
 
 ### ⚠️ Remaining Issues (Need Client Decision)
 1. **Complex template syntax** - Some outline strings still contain unresolved template syntax
@@ -212,13 +234,18 @@ Box shadows are now converted to Android elevation tokens:
 
 1. `_Scripts/token_transformer_full_coverage.py`
    - ✅ Line ~1016-1020: Fixed border width unit generation (converts px to dp, adds dp to missing units)
+   - ✅ Line ~1204-1206: Updated dict detection to handle dict objects (not just dict-like strings)
+   - ✅ Line ~1221: Added box shadow properties (x, y, blur, spread) to dimension detection
+   - ✅ Line ~1252-1279: Skip writing full dict after extracting properties; handle dict objects properly
    - ✅ Line ~1373-1375: Added cursor string filtering in interactions.xml generation
    - ✅ Line ~1385-1432: Improved template syntax resolution in interactions.xml
    - ✅ Line ~1461-1466: Removed type string output in components.xml generation
    - ✅ Line ~1499-1500: Removed JSON-like identifier string output in components.xml generation
+   - ✅ Applied same fixes to all 3 occurrences in nested variant processing
 
 2. Generated XML files (regenerated with fixes):
    - ✅ `_TransformedTokens/xml/*/dimens.xml` - Border width units now use "dp"
    - ✅ `_TransformedTokens/xml/*/interactions.xml` - Cursor strings removed, improved template resolution
-   - ✅ `_TransformedTokens/xml/*/components.xml` - Type and identifier strings removed
+   - ✅ `_TransformedTokens/xml/*/components.xml` - Type and identifier strings removed; invalid box shadow dict strings removed
+   - ✅ All 6 brand/theme combinations updated (default_day, default_night, performance_day, performance_night, luxury_day, luxury_night)
 

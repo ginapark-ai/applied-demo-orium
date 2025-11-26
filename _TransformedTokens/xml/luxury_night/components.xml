@@ -4,23 +4,23 @@
 
     <!-- Button Component -->
     <color name="component_button_danger_active_fill">#fda29b</color>
-    <color name="component_button_danger_default_text_color">#ffffff</color>
+    <dimen name="component_button_danger_default_vertical_padding">16dp</dimen>
     <string name="component_button_danger_hover_transition">150 cubic-bezier(0.4, 0, 0.2, 1)</string>
     <color name="component_button_loading_fill">#9b59b6</color>
     <string name="component_button_loading_opacity">0.6</string>
     <string name="component_button_primary_active_transition">150 cubic-bezier(0.4, 0, 0.2, 1)</string>
-    <color name="component_button_primary_default_text_color">#ffffff</color>
+    <dimen name="component_button_primary_default_vertical_padding">16dp</dimen>
     <color name="component_button_primary_disabled_text_color">#B8B8B8</color>
     <string name="component_button_primary_hover_transition">150 cubic-bezier(0.4, 0, 0.2, 1)</string>
     <string name="component_button_secondary_active_opacity">0.76</string>
-    <color name="component_button_secondary_default_text_color">#9b59b6</color>
+    <dimen name="component_button_secondary_default_vertical_padding">16dp</dimen>
     <color name="component_button_secondary_disabled_text_color">#B8B8B8</color>
     <string name="component_button_secondary_hover_transition">150 cubic-bezier(0.4, 0, 0.2, 1)</string>
-    <string name="component_button_size_large_padding">32 48</string>
-    <string name="component_button_size_medium_padding">16 32</string>
-    <string name="component_button_size_small_padding">8 16</string>
+    <dimen name="component_button_size_large_vertical_padding">32dp</dimen>
+    <dimen name="component_button_size_medium_vertical_padding">16dp</dimen>
+    <dimen name="component_button_size_small_vertical_padding">8dp</dimen>
     <color name="component_button_tertiary_active_fill">#2A2A2A</color>
-    <color name="component_button_tertiary_default_text_color">#9b59b6</color>
+    <dimen name="component_button_tertiary_default_vertical_padding">8dp</dimen>
     <string name="component_button_tertiary_hover_transition">150 cubic-bezier(0.4, 0, 0.2, 1)</string>
 
     <!-- Card Component -->

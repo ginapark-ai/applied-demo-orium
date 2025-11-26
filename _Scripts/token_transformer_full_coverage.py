@@ -151,7 +151,7 @@ class FullCoverageTransformer:
                 target[key] = value
 
     def resolve_reference(self, ref_string: str) -> str:
-        """Resolve token references."""
+        """Resolve token references, handling recursive/nested references."""
         if ref_string in self.resolved_cache:
             return self.resolved_cache[ref_string]
 
@@ -162,12 +162,28 @@ class FullCoverageTransformer:
             return ref_string
 
         resolved = ref_string
-        for token_path in matches:
-            value = self._get_token_value(token_path)
-            if value:
-                resolved = resolved.replace(f"{{{token_path}}}", str(value))
-            else:
-                self.unresolved_refs.add(token_path)
+        max_iterations = 10  # Prevent infinite loops
+        iteration = 0
+        
+        while '{' in resolved and iteration < max_iterations:
+            iteration += 1
+            matches = re.findall(pattern, resolved)
+            if not matches:
+                break
+                
+            for token_path in matches:
+                value = self._get_token_value(token_path)
+                if value:
+                    # Convert value to string and recursively resolve if it contains references
+                    value_str = str(value)
+                    if '{' in value_str:
+                        # Recursively resolve nested references
+                        value_str = self.resolve_reference(value_str)
+                    resolved = resolved.replace(f"{{{token_path}}}", value_str)
+                else:
+                    self.unresolved_refs.add(token_path)
+                    # If we can't resolve, keep the original reference
+                    break
 
         self.resolved_cache[ref_string] = resolved
         return resolved
@@ -1515,7 +1531,7 @@ object TokenProvider {
                                             # Determine resource type
                                             nested_key_lower = nested_key.lower()
                                             is_nested_color = any(x in nested_key_lower for x in ["color", "fill", "background"])
-                                            is_nested_dimen = any(x in nested_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            is_nested_dimen = any(x in nested_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
                                             
                                             # Try to convert to number
                                             nested_numeric = None
@@ -1561,7 +1577,7 @@ object TokenProvider {
                                     # Determine resource type based on property name and value
                                     prop_key_lower = prop_key.lower()
                                     is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
-                                    is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
+                                    is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation", "horizontal", "vertical"])
                                     
                                     # Try to convert string to number if it looks numeric
                                     # Handle units like "px", "dp", "%" - convert px to dp for Android
@@ -1595,7 +1611,7 @@ object TokenProvider {
                                             # Determine resource type
                                             dict_key_lower = dict_key.lower()
                                             is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
-                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
                                             
                                             # Try to convert to number
                                             dict_numeric = None
@@ -1629,12 +1645,43 @@ object TokenProvider {
                                     elif isinstance(resolved_value, str):
                                         if resolved_value.startswith("#"):
                                             xml += f'    <color name="{full_name}">{resolved_value}</color>\n'
+                                        elif "padding" in prop_key_lower and ("horizontal" in prop_key_lower or "vertical" in prop_key_lower):
+                                            # Explicitly handle horizontalPadding and verticalPadding
+                                            # Try to resolve and convert to number
+                                            try:
+                                                # Remove units for numeric conversion
+                                                numeric_str = resolved_value.replace("px", "").replace("dp", "").replace("%", "").strip()
+                                                if numeric_str:
+                                                    if '.' in numeric_str:
+                                                        padding_value = float(numeric_str)
+                                                    else:
+                                                        padding_value = int(numeric_str)
+                                                    xml += f'    <dimen name="{full_name}">{padding_value}dp</dimen>\n'
+                                                else:
+                                                    xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                            except (ValueError, TypeError):
+                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
                                         elif numeric_value is not None and is_dimen_prop:
                                             # Numeric string for a dimension property - convert px to dp for Android
                                             xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
                                         elif "px" in resolved_value.lower() and is_dimen_prop and numeric_value is not None:
                                             # Convert px to dp for dimension properties (borderWidth, etc.)
                                             xml += f'    <dimen name="{full_name}">{numeric_value}dp</dimen>\n'
+                                        elif is_color_prop and not resolved_value.startswith("@") and not resolved_value.startswith("#"):
+                                            # For color properties, try to resolve further if it's a reference
+                                            # Check if it's an unresolved reference that might resolve to a color
+                                            if resolved_value.startswith("{") or "color" in resolved_value.lower():
+                                                # Try one more resolution pass
+                                                further_resolved = self.resolve_reference(resolved_value)
+                                                if further_resolved.startswith("#"):
+                                                    xml += f'    <color name="{full_name}">{further_resolved}</color>\n'
+                                                elif further_resolved != resolved_value and further_resolved.startswith("#"):
+                                                    # Recursively resolved to a color
+                                                    xml += f'    <color name="{full_name}">{further_resolved}</color>\n'
+                                                else:
+                                                    xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                            else:
+                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
                                         elif resolved_value.startswith("@"):
                                             xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
                                         else:
@@ -1686,7 +1733,7 @@ object TokenProvider {
                                                         # Determine resource type
                                                         nested_key_lower = nested_key.lower()
                                                         is_nested_color = any(x in nested_key_lower for x in ["color", "fill", "background"])
-                                                        is_nested_dimen = any(x in nested_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                                        is_nested_dimen = any(x in nested_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
                                                         
                                                         # Try to convert to number (handle units like "px", "dp")
                                                         nested_numeric = None
@@ -1732,7 +1779,7 @@ object TokenProvider {
                                                 # Determine resource type based on property name and value
                                                 prop_key_lower = prop_key.lower()
                                                 is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
-                                                is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
+                                                is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation", "horizontal", "vertical"])
                                                 
                                     # Try to convert string to number if it looks numeric
                                     # Handle units like "px", "dp", "%" - convert px to dp for Android
@@ -1766,7 +1813,7 @@ object TokenProvider {
                                             # Determine resource type
                                             dict_key_lower = dict_key.lower()
                                             is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
-                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
                                             
                                             # Try to convert to number (handle units like "px", "dp")
                                             dict_numeric = None
@@ -1871,7 +1918,7 @@ object TokenProvider {
                                     # Determine resource type based on property name and value
                                     prop_key_lower = prop_key.lower()
                                     is_color_prop = any(x in prop_key_lower for x in ["color", "fill", "background"])
-                                    is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation"])
+                                    is_dimen_prop = any(x in prop_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "shadow", "elevation", "horizontal", "vertical"])
                                     
                                     # Try to convert string to number if it looks numeric
                                     numeric_value = None
@@ -1902,7 +1949,7 @@ object TokenProvider {
                                             # Determine resource type
                                             dict_key_lower = dict_key.lower()
                                             is_dict_color = any(x in dict_key_lower for x in ["color", "fill", "background"])
-                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap"])
+                                            is_dict_dimen = any(x in dict_key_lower for x in ["padding", "margin", "radius", "width", "height", "size", "spacing", "gap", "horizontal", "vertical"])
                                             
                                             # Try to convert to number
                                             dict_numeric = None
@@ -1942,6 +1989,14 @@ object TokenProvider {
                                         elif resolved_value.startswith("@"):
                                             # Reference to another resource - use as string for now
                                             xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
+                                        elif "padding" in prop_key_lower and ("horizontal" in prop_key_lower or "vertical" in prop_key_lower):
+                                            # Explicitly handle horizontalPadding and verticalPadding
+                                            # Try to resolve and convert to number
+                                            try:
+                                                padding_value = int(resolved_value) if '.' not in resolved_value else float(resolved_value)
+                                                xml += f'    <dimen name="{full_name}">{padding_value}dp</dimen>\n'
+                                            except (ValueError, TypeError):
+                                                xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
                                         else:
                                             xml += f'    <string name="{full_name}">{resolved_value}</string>\n'
                                     elif isinstance(resolved_value, (int, float)):

@@ -116,10 +116,10 @@
                 android:textColor="@color/component_button_primary_default_text_color"
                 android:background="@drawable/button_primary_background"
                 android:layout_marginTop="@dimen/spacing_md"
-                android:paddingTop="@dimen/spacing_sm"
-                android:paddingBottom="@dimen/spacing_sm"
-                android:paddingStart="@dimen/spacing_md"
-                android:paddingEnd="@dimen/spacing_md"
+                android:paddingTop="@dimen/component_button_primary_default_vertical_padding"
+                android:paddingBottom="@dimen/component_button_primary_default_vertical_padding"
+                android:paddingStart="@dimen/component_button_primary_default_horizontal_padding"
+                android:paddingEnd="@dimen/component_button_primary_default_horizontal_padding"
                 android:textSize="@dimen/font_size_24"
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>

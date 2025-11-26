@@ -5,7 +5,8 @@
         "value": {
           "fill": "{color.brandPrimary.primary}",
           "textColor": "{color.whites.white-100-primary}",
-          "padding": "{spacing.sm} {spacing.md}",
+          "verticalPadding": "{spacing.sm}",
+          "horizontalPadding": "{spacing.md}",
           "borderRadius": "{borderRadius.sm}",
           "fontSize": "{fontSize.24}",
           "fontWeight": "{fontWeight.demibold}"
@@ -43,7 +44,8 @@
           "fill": "{color.surface.secondary}",
           "textColor": "{color.brandPrimary.primary}",
           "border": "1px solid {color.surface.secondary}",
-          "padding": "{spacing.sm} {spacing.md}",
+          "verticalPadding": "{spacing.sm}",
+          "horizontalPadding": "{spacing.md}",
           "borderRadius": "{borderRadius.sm}",
           "fontSize": "{fontSize.24}",
           "fontWeight": "{fontWeight.demibold}"
@@ -81,7 +83,8 @@
         "value": {
           "fill": "transparent",
           "textColor": "{color.brandPrimary.primary}",
-          "padding": "{spacing.xs} {spacing.sm}",
+          "verticalPadding": "{spacing.xs}",
+          "horizontalPadding": "{spacing.sm}",
           "fontSize": "{fontSize.24}",
           "fontWeight": "{fontWeight.demibold}"
         },
@@ -106,7 +109,8 @@
         "value": {
           "fill": "{color.red.red-100}",
           "textColor": "{color.whites.white-100-primary}",
-          "padding": "{spacing.sm} {spacing.md}",
+          "verticalPadding": "{spacing.sm}",
+          "horizontalPadding": "{spacing.md}",
           "borderRadius": "{borderRadius.sm}",
           "fontSize": "{fontSize.24}",
           "fontWeight": "{fontWeight.demibold}"
@@ -130,7 +134,8 @@
     "size": {
       "small": {
         "value": {
-          "padding": "{spacing.xs} {spacing.sm}",
+          "verticalPadding": "{spacing.xs}",
+          "horizontalPadding": "{spacing.sm}",
           "fontSize": "{fontSize.14}",
           "borderRadius": "{borderRadius.xs}",
           "height": "32px"
@@ -139,7 +144,8 @@
       },
       "medium": {
         "value": {
-          "padding": "{spacing.sm} {spacing.md}",
+          "verticalPadding": "{spacing.sm}",
+          "horizontalPadding": "{spacing.md}",
           "fontSize": "{fontSize.24}",
           "borderRadius": "{borderRadius.sm}",
           "height": "40px"
@@ -148,7 +154,8 @@
       },
       "large": {
         "value": {
-          "padding": "{spacing.md} {spacing.lg}",
+          "verticalPadding": "{spacing.md}",
+          "horizontalPadding": "{spacing.lg}",
           "fontSize": "{fontSize.28}",
           "borderRadius": "{borderRadius.sm}",
           "height": "48px"

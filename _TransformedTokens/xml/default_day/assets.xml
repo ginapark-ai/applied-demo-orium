@@ -2,6 +2,6 @@
 <resources>
     <!-- ASSET TOKENS - URLs to brand assets (logos, images, icons) -->
 
-    <string name="asset_brand_logo">https://seeklogo.com/free-vector-logos/ford</string>
-    <string name="asset_product_image">https://purepng.com/photo/17038/ford</string>
+    <string name="asset_brand_logo">https://thumbs.dreamstime.com/b/logo-audi-car-color-vector-format-aviable-ai-logo-audi-124368762.jpg</string>
+    <string name="asset_product_image">https://nar-dam.audi.com/adobe/assets/urn:aaid:aem:a3670a61-2b82-4dac-81ac-ad1aac612ac3/as/1920X1080_STAGE_MY26---Q3---Exterior---Front---Parked---8058.jpg?width=1920</string>
 </resources>
